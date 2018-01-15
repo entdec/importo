@@ -1,0 +1,16 @@
+- if @columns.present?
+  p = t('.explanation_html', sample_path: admin_sample_import_path(kind: @import.kind))
+  p
+    = t('.column_names_supported')
+    ul
+      - @columns.each do |name, explanation|
+        li
+          b = name
+          | :&nbsp;
+          = explanation
+
+= simple_form_for([:admin, @import]) do |f|
+  = f.input :kind, as: :hidden
+  = f.input :file_name, as: :file
+
+  = f.button :button, t('.import_button'), name: 'commit', value: 'import', class: 'btn-primary', data: { disable_with: t('.import_button') }
