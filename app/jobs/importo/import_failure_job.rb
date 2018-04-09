@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
-class ImportFailureJob < ApplicationJob
-  queue_as :import
+require_dependency 'importo/application_job'
 
-  def perform(import_id)
-    imprt = Import.find(import_id)
-    imprt.user.channel.current!
-    # Send email
+module Importo
+  class ImportFailureJob < ApplicationJob
+    queue_as :import
+
+    def perform(import_id)
+      imprt = Import.find(import_id)
+      imprt.user.channel.current!
+      # Send email
+    end
   end
 end

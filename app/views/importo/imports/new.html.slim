@@ -1,15 +1,7 @@
 - if @columns.present?
-  p = t('.explanation_html', sample_path: admin_sample_import_path(kind: @import.kind))
-  p
-    = t('.column_names_supported')
-    ul
-      - @columns.each do |name, explanation|
-        li
-          b = name
-          | :&nbsp;
-          = explanation
+  p = t('.explanation_html', sample_path: sample_import_path(kind: @import.kind))
 
-= simple_form_for([:admin, @import]) do |f|
+= simple_form_for(@import) do |f|
   = f.input :kind, as: :hidden
   = f.input :file_name, as: :file
 

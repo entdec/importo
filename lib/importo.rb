@@ -6,11 +6,14 @@ module Importo
   class Error < StandardError; end
 
   class Configuration
-    attr_writer :logger
+    attr_accessor :admin_authentication_module
+    attr_accessor :base_controller
+    attr_writer   :logger
 
     def initialize
       @logger = Logger.new(STDOUT)
       @logger.level = Logger::INFO
+      @base_controller = '::ApplicationController'
     end
 
     # Config: logger [Object].
@@ -22,7 +25,7 @@ module Importo
   class << self
     attr_reader :config
 
-    def configure
+    def setup
       @config = Configuration.new
       yield config
     end

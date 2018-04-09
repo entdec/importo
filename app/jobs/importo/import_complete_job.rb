@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
-class ImportCompleteJob < ApplicationJob
-  queue_as :import
+require_dependency 'importo/application_job'
 
-  def perform(import_id)
-    sleep 1
-    @imprt = Import.find(import_id)
-    @imprt.user.channel.current!
-    result_xml = @imprt.importer.results_file
+module Importo
+  class ImportCompleteJob < ApplicationJob
+    queue_as :import
 
-    # Send email
-    MessageJob.perform_now(@imprt, 'complete', attachments: [{ content: result_xml, content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', file_name: 'import_results.xlsx', auto_zip: false }])
+    def perform(import_id)
+      sleep 1
+      @imprt = Import.find(import_id)
+      @imprt.user.channel.current!
+      result_xml = @imprt.importer.results_file
+
+      # Send email
+      MessageJob.perform_now(@imprt, 'complete', attachments: [{ content: result_xml, content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', file_name: 'import_results.xlsx', auto_zip: false }])
+    end
   end
 end

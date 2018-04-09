@@ -1,0 +1,12 @@
+en:
+  importo:
+    imports:
+      new:
+        explanation_html: A CSV or Excel file can be used to import records. The first row should be the column names.<br>If an <b>id</b> is supplied it will update the matching record instead of creating a new one. <a href='%{sample_path}' target='_blank'>Download template</a>.
+        error_explanation: 'The following problems prohibited this import from completing:'
+        import: Import %{kind}
+        import_button: Import
+      create:
+        flash:
+          error: Import failed, there were problems.
+          success: 'Import scheduled with id %{id}, you will get an email with the results.'

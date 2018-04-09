@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
-Importo.configure do |config|
+Importo.setup do |config|
   # config.logger = Rails::Logger.new
 end
