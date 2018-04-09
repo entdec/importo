@@ -1,0 +1,13 @@
+default: &default
+  adapter: postgresql
+  encoding: utf8
+  pool: 5
+  timeout: 5000
+
+test:
+  <<: *default
+  host: mdillon__postgis
+  username: postgres
+  database: ordinem_test
+
+
