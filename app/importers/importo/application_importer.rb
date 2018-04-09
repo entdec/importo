@@ -33,7 +33,7 @@ class Importer
 
   def structure_valid?
     return true if !includes_header? || ignore_header?
-    invalid_header_names.count == 0
+    invalid_header_names.count.zero?
   end
 
   def header_names
