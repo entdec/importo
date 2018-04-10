@@ -4,7 +4,7 @@ module Importo
   class BaseImporter
     include ActionView::Helpers::SanitizeHelper
 
-    delegate :fields, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
+    delegate :friendly_name, :fields, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
     attr_reader :import
 
     def initialize(imprt = nil)
@@ -69,6 +69,10 @@ module Importo
       workbook = xls.workbook
       sheet = workbook.add_worksheet(name: 'Import')
       sheet.add_row fields.keys
+
+      fields.each.with_index do |f, i|
+        sheet.add_comment ref: "#{('A'..'Z').to_a[i]}1", author: self.class.name, text: f.last, visible: false if f.last.present?
+      end
 
       xls.to_stream
     end
@@ -200,6 +204,12 @@ module Importo
     end
 
     class << self
+
+      def friendly_name(friendly_name = nil)
+        @friendly_name = friendly_name if friendly_name
+        @friendly_name || name
+      end
+
       def fields(data = nil)
         @fields = data if data
         @fields
