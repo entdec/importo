@@ -20,6 +20,9 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'rails', '~> 5.1.3'
   s.add_dependency 'slim', '~> 3.0.8'
+  s.add_dependency 'roo', '~> 2.7'
+  s.add_dependency 'roo-xls', '~> 1.1'
+  s.add_dependency 'axlsx', '~> 2.1.0.pre'
 
   s.add_development_dependency 'pg'
 end
