@@ -7,10 +7,11 @@ module Importo
     # before_action :authenticate_user!
     # authorize_resource
 
-    add_breadcrumb I18n.t('breadcrumbs.admin.imports'), :imports_path # view logic
+    add_breadcrumb I18n.t('importo.breadcrumbs.imports') if defined? add_breadcrumb
 
     def new
       @import = Import.new(kind: params[:kind])
+      add_breadcrumb @import.importer.friendly_name if defined? add_breadcrumb
       @columns = @import.importable_fields
     end
 

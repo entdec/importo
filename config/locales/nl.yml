@@ -1,0 +1,14 @@
+nl:
+  importo:
+    breadcrumbs:
+      imports: Imports
+    imports:
+      new:
+        explanation_html: Een CSV of Excel bestand kan gebruikt worden om records te importeren. De eerste rij moet de kolom namen bevatten.<br>Als een <b>id</b> is ingevuld, zal het bestaande record worden geupdate in plaats van een nieuwe aan te maken.<br>Download een <a href='%{sample_path}' target='_blank'>voorbeeld file</a> met alle ondersteunde kolomnamen en de bijbehorende uitleg.
+        error_explanation: 'De import is mislukt door de volgende problemen:'
+        import: Import %{kind}
+        import_button: Importeer
+      create:
+        flash:
+          error: Import mislukt, er waren problemen, voor details zie hieronder.
+          success: 'Import geplanned met id %{id}, je krijgt een email met de resultaten.'
