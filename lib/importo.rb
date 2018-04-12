@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'axlsx'
+require 'roo'
+require 'roo-xls'
+
 require 'importo/engine'
 
 module Importo
