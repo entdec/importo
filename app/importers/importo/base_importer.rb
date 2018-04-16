@@ -11,11 +11,11 @@ module Importo
       @import = imprt
     end
 
-    def build
+    def build(_row)
       raise NotImplementedError, "Implement 'build' method in #{self.class.name} class"
     end
 
-    def before_save(record, row)
+    def before_save(_record, _row)
       # Implement optionally in child class to mangle
     end
 
@@ -211,8 +211,13 @@ module Importo
       end
 
       def fields(data = nil)
+        @fields ||= {}
         @fields = data if data
         @fields
+      end
+
+      def field(column_name, column_description, klass=nil)
+        fields[column_name] = column_description
       end
 
       def allow_duplicates(duplicates)
