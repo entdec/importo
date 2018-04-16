@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
+require 'aasm'
 require 'axlsx'
 require 'roo'
 require 'roo-xls'
+require 'slim'
 
 require 'importo/engine'
 
 module Importo
   class Error < StandardError; end
+  class DuplicateRowError < Error; end
 
   class Configuration
     attr_accessor :admin_authentication_module

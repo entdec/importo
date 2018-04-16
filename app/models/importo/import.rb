@@ -2,38 +2,43 @@
 
 module Importo
   class Import < ApplicationRecord
-    belongs_to :user
+    include AASM
+
+    #belongs_to :user
 
     has_many :message_instances, as: :messagable
 
-    delegate :channel, :retailer, :company, to: :user
+    #delegate :channel, :retailer, :company, to: :user
 
-    validates :user, presence: true
+    #validates :user, presence: true
     validates :kind, presence: true
     validates :file_name, presence: true
     validate :content_validator
 
-    state_machine initial: :new do
+    aasm column: :state, no_direct_assignment: true do
+      state :new, initial: true
+
+      state :importing
+      state :scheduled, after_enter: ->(imprt) { ImportJob.perform_later(imprt.id) }
+      state :completed, after_enter: ->(imprt) { ImportCompleteJob .perform_later(imprt.id) }
+      state :failed, after_enter: ->(imprt) { ImportFailureJob.perform_later(imprt.id) }
+
       event :schedule do
-        transition new: :scheduled
+        transitions from: :new, to: :scheduled
       end
 
       event :import do
-        transition new: :importing
-        transition scheduled: :importing
+        transitions from: :new, to: :importing
+        transitions from: :scheduled, to: :importing
       end
 
       event :complete do
-        transition importing: :completed
+        transitions from: :importing, to: :completed
       end
 
       event :failure do
-        transition importing: :failed
+        transitions from: :importing, to: :failed
       end
-
-      after_transition(any => :scheduled) { |imprt, _transition| ImportJob.perform_later(imprt.id) }
-      after_transition(any => :completed) { |imprt, _transition| ImportCompleteJob .perform_later(imprt.id) }
-      after_transition(any => :failed)    { |imprt, _transition| ImportFailureJob.perform_later(imprt.id) }
     end
 
     def content_validator

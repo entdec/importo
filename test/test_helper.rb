@@ -4,6 +4,7 @@ require File.expand_path('../../test/dummy/config/environment.rb', __FILE__)
 ActiveRecord::Migrator.migrations_paths = [File.expand_path('../../test/dummy/db/migrate', __FILE__)]
 ActiveRecord::Migrator.migrations_paths << File.expand_path('../../db/migrate', __FILE__)
 require 'rails/test_help'
+require 'minitest/mock'
 
 # Filter out Minitest backtrace while allowing backtrace from other libraries
 # to be shown.
@@ -15,4 +16,24 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
   ActiveSupport::TestCase.file_fixture_path = ActiveSupport::TestCase.fixture_path + '/files'
   ActiveSupport::TestCase.fixtures :all
+end
+
+require 'pry'
+
+# require 'minitest/reporters'
+# MiniTest::Reporters.use!
+
+def simple_sheet(ary)
+  xls = Axlsx::Package.new
+  workbook = xls.workbook
+  sheet = workbook.add_worksheet(name: 'Import')
+
+  ary.each do |a|
+    sheet.add_row a
+  end
+
+  Tempfile.open(%w[simple_sheet .xlsx]) do |f|
+    f.write(xls.to_stream.read)
+    f
+  end
 end

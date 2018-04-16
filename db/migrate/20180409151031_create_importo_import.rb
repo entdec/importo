@@ -1,6 +1,7 @@
 class CreateImportoImport < ActiveRecord::Migration[5.1]
   def change
     enable_extension 'uuid-ossp'
+    enable_extension 'pgcrypto'
     create_table :importo_imports, id: :uuid do |t|
       t.uuid :user_id
       t.string :kind

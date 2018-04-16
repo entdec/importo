@@ -8,6 +8,6 @@ test:
   <<: *default
   host: mdillon__postgis
   username: postgres
-  database: ordinem_test
+  database: importo_test
 
 

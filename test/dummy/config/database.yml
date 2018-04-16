@@ -6,12 +6,12 @@ default: &default
 
 development:
   <<: *default
-  database: scribo_development
+  database: importo_development
 
 test:
   <<: *default
-  database: scribo_test
+  database: importo_test
 
 production:
   <<: *default
-  database: scribo_production
+  database: importo_production

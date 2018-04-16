@@ -1,6 +1,4 @@
 class Account < ApplicationRecord
-  scribable
-
   def current!
     Thread.current[:account] = self
   end

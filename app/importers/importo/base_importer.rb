@@ -113,20 +113,25 @@ module Importo
 
     def process_data_row(attributes, index)
       record = nil
+      row_hash = Digest::SHA256.base64digest(attributes.inspect)
 
       begin
         ActiveRecord::Base.transaction(requires_new: true) do
-          row_hash = Digest::SHA256.base64digest(attributes.inspect)
           register_result(index, hash: row_hash, state: :processing)
-          next if duplicate?(index, row_hash)
 
           record = build(attributes)
           record.validate!
           before_save(record, attributes)
           record.save!
+          raise Importo::DuplicateRowError if duplicate?(row_hash, record.id)
           register_result(index, class: record.class.name, id: record.id, state: :success)
         end
         record
+      rescue Importo::DuplicateRowError => e
+        dpl = duplicate(row_hash, record.id)
+        record_id = dpl.results.find { |data| data['hash'] == row_hash }['id']
+        register_result(index, id: record_id, state: :duplicate, message: "Row already imported successfully on #{dpl.created_at.to_date}")
+        nil
       rescue StandardError => e
         errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
         register_result(index, class: record.class.name, state: :failure, message: e.message, errors: errors)
@@ -134,15 +139,13 @@ module Importo
       end
     end
 
-    def duplicate?(index, row_hash)
+    def duplicate(row_hash, id)
+      Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND id <> :id", id: id).first
+    end
+
+    def duplicate?(row_hash, id)
       return false if allow_duplicates?
-
-      duplicate = Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]'").first
-      return false unless duplicate
-
-      record_id = duplicate.results.find { |data| data['hash'] == row_hash }['id']
-      register_result(index, id: record_id, state: :duplicate, message: "Row already imported successfully on #{duplicate.created_at.to_date}")
-      true
+      duplicate(row_hash, id)
     end
 
     def cells_from_row(index)
