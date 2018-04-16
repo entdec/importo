@@ -71,7 +71,7 @@ module Importo
       sheet.add_row fields.keys
 
       fields.each.with_index do |f, i|
-        sheet.add_comment ref: "#{('A'..'Z').to_a[i]}1", author: self.class.name, text: f.last, visible: false if f.last.present?
+        sheet.add_comment ref: "#{('A'..'ZZ').to_a[i]}1", author: self.class.name, text: f.last, visible: false if f.last.present?
       end
 
       xls.to_stream
