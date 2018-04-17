@@ -4,13 +4,10 @@ module Importo
   class Import < ApplicationRecord
     include AASM
 
-    #belongs_to :user
+    belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
 
-    #delegate :channel, :retailer, :company, to: :user
-
-    #validates :user, presence: true
     validates :kind, presence: true
     validates :file_name, presence: true
     validate :content_validator
@@ -18,10 +15,10 @@ module Importo
     aasm column: :state, no_direct_assignment: true do
       state :new, initial: true
 
-      state :importing
+      state :importing, after_enter: ->(imprt) { Importo.config.import_callback(imprt, :importing) }
       state :scheduled, after_enter: ->(imprt) { ImportJob.perform_later(imprt.id) }
-      state :completed, after_enter: ->(imprt) { ImportCompleteJob .perform_later(imprt.id) }
-      state :failed, after_enter: ->(imprt) { ImportFailureJob.perform_later(imprt.id) }
+      state :completed, after_enter: ->(imprt) { Importo.config.import_callback(imprt, :completed) }
+      state :failed, after_enter: ->(imprt) { Importo.config.import_callback(imprt, :failed) }
 
       event :schedule do
         transitions from: :new, to: :scheduled

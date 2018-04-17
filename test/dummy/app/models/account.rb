@@ -1,4 +1,8 @@
+# frozen_string_literal: true
+
 class Account < ApplicationRecord
+  include Importo::ActsAsImportOwner
+
   def current!
     Thread.current[:account] = self
   end

@@ -25,7 +25,8 @@ ActiveRecord::Schema.define(version: 20180409151031) do
   end
 
   create_table "importo_imports", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "user_id"
+    t.string "importo_ownable_type", null: false
+    t.uuid "importo_ownable_id", null: false
     t.string "kind"
     t.string "state"
     t.string "file_name"

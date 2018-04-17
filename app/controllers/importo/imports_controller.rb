@@ -4,9 +4,6 @@ require_dependency 'importo/application_controller'
 
 module Importo
   class ImportsController < ApplicationController
-    # before_action :authenticate_user!
-    # authorize_resource
-
     add_breadcrumb I18n.t('importo.breadcrumbs.imports') if defined? add_breadcrumb
 
     def new
@@ -16,7 +13,7 @@ module Importo
     end
 
     def create
-      @import = Import.new(import_params.merge(user: current_user))
+      @import = Import.new(import_params.merge(importo_ownable: Importo.config.current_import_owner))
       if @import.valid? && @import.schedule!
         redirect_to new_import_url, notice: t('.flash.success', id: @import.id)
       else

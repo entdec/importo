@@ -127,7 +127,7 @@ module Importo
           register_result(index, class: record.class.name, id: record.id, state: :success)
         end
         record
-      rescue Importo::DuplicateRowError => e
+      rescue Importo::DuplicateRowError
         dpl = duplicate(row_hash, record.id)
         record_id = dpl.results.find { |data| data['hash'] == row_hash }['id']
         register_result(index, id: record_id, state: :duplicate, message: "Row already imported successfully on #{dpl.created_at.to_date}")
@@ -207,7 +207,6 @@ module Importo
     end
 
     class << self
-
       def friendly_name(friendly_name = nil)
         @friendly_name = friendly_name if friendly_name
         @friendly_name || name
@@ -219,7 +218,7 @@ module Importo
         @fields
       end
 
-      def field(column_name, column_description, klass=nil)
+      def field(column_name, column_description, _klass = nil)
         fields[column_name] = column_description
       end
 

@@ -21,8 +21,7 @@ end
 module Importo
   class ImportTest < ActiveSupport::TestCase
     test 'imports an excel file' do
-
-      import = Import.create(kind: 'account', file_name: simple_sheet([%w[id name description], %w[id test test-description]]).path)
+      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[id name description], %w[id test test-description]]).path)
       import.schedule
       assert_equal 'scheduled', import.state
       import.import

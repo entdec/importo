@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-$LOAD_PATH.push File.expand_path('../lib', __FILE__)
+$LOAD_PATH.push File.expand_path('lib', __dir__)
 
 # Maintain your gem's version:
 require 'importo/version'
@@ -19,16 +19,16 @@ Gem::Specification.new do |s|
   s.files = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
 
   s.add_dependency 'aasm'
+  s.add_dependency 'axlsx', '~> 2.1.0.pre'
   s.add_dependency 'rails', '~> 5.1.3'
-  s.add_dependency 'slim', '~> 3.0.8'
   s.add_dependency 'roo', '~> 2.7'
   s.add_dependency 'roo-xls', '~> 1.1'
-  s.add_dependency 'axlsx', '~> 2.1.0.pre'
+  s.add_dependency 'slim', '~> 3.0.8'
 
   s.add_development_dependency 'minitest', '~> 5.11'
   s.add_development_dependency 'minitest-reporters', '~> 1.1'
-  s.add_development_dependency 'rubocop', '~> 0.49'
   s.add_development_dependency 'pg'
   s.add_development_dependency 'pry'
   s.add_development_dependency 'pry-rails', '~> 0.3'
+  s.add_development_dependency 'rubocop', '~> 0.49'
 end

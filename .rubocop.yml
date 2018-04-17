@@ -9,8 +9,7 @@ AllCops:
     - 'spec/**/*'
     - 'lib/generators/**/*'
     - 'node_modules/**/*'
-    - 'test/dummy/db/**/*'
-    - 'test/dummy/config/**/*'
+    - 'test/dummy/**/*'
 
 Metrics:
   Enabled: false
@@ -39,5 +38,5 @@ Style/GuardClause:
 Style/ClassAndModuleChildren:
   Enabled: false
 
-Lint/EndAlignment:
+Layout/EndAlignment:
   AutoCorrect: true
