@@ -3,6 +3,7 @@
 module Importo
   class BaseImporter
     include ActionView::Helpers::SanitizeHelper
+    include ImporterDSL
 
     delegate :friendly_name, :fields, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
     attr_reader :import
@@ -11,14 +12,23 @@ module Importo
       @import = imprt
     end
 
+    #
+    # Build a record based on the row
+    #
     def build(_row)
       raise NotImplementedError, "Implement 'build' method in #{self.class.name} class"
     end
 
+    #
+    # Mangle the record before saving
+    #
     def before_save(_record, _row)
       # Implement optionally in child class to mangle
     end
 
+    #
+    # Does the actual import
+    #
     def import!
       raise ArgumentError, 'Invalid data structure' unless structure_valid?
 
@@ -32,38 +42,9 @@ module Importo
       @import.failure!
     end
 
-    def structure_valid?
-      return true if !includes_header? || ignore_header?
-      invalid_header_names.count.zero?
-    end
-
-    def header_names
-      return fields.keys if !includes_header? || ignore_header?
-      @header_names ||= cells_from_row(header_row)
-    end
-
-    def invalid_header_names
-      invalid_header_names_for_row(1)
-    end
-
-    def loop_data_rows
-      (data_start_row..spreadsheet.last_row).map do |index|
-        row = cells_from_row(index)
-        attributes = Hash[[header_names, row].transpose]
-        attributes.reject! { |k, _v| headers_added_by_import.include?(k) }
-
-        yield attributes, index
-      end
-    end
-
-    def row_count
-      (spreadsheet.last_row - data_start_row) + 1
-    end
-
-    def headers_added_by_import
-      %w[import_state import_created_id import_message import_errors].map(&:dup)
-    end
-
+    #
+    # Generates a sample excel file as a stream
+    #
     def sample_file
       xls = Axlsx::Package.new
       workbook = xls.workbook
@@ -71,12 +52,16 @@ module Importo
       sheet.add_row fields.keys
 
       fields.each.with_index do |f, i|
-        sheet.add_comment ref: "#{('A'..'ZZ').to_a[i]}1", author: self.class.name, text: f.last, visible: false if f.last.present?
+        field = f.last
+        sheet.add_comment ref: "#{('A'..'ZZ').to_a[i]}1", author: self.class.name, text: field.description, visible: false if field.description.present?
       end
 
       xls.to_stream
     end
 
+    #
+    # Generates a result excel file as a stream
+    #
     def results_file
       xls = Axlsx::Package.new
       workbook = xls.workbook
@@ -109,7 +94,39 @@ module Importo
       xls.to_stream
     end
 
+    def structure_valid?
+      return true if !includes_header? || ignore_header?
+      invalid_header_names.count.zero?
+    end
+
     private
+
+    def header_names
+      return fields.keys if !includes_header? || ignore_header?
+      @header_names ||= cells_from_row(header_row)
+    end
+
+    def invalid_header_names
+      invalid_header_names_for_row(1)
+    end
+
+    def loop_data_rows
+      (data_start_row..spreadsheet.last_row).map do |index|
+        row = cells_from_row(index)
+        attributes = Hash[[header_names, row].transpose]
+        attributes.reject! { |k, _v| headers_added_by_import.include?(k) }
+
+        yield attributes, index
+      end
+    end
+
+    def row_count
+      (spreadsheet.last_row - data_start_row) + 1
+    end
+
+    def headers_added_by_import
+      %w[import_state import_created_id import_message import_errors].map(&:dup)
+    end
 
     def process_data_row(attributes, index)
       record = nil
@@ -204,64 +221,6 @@ module Importo
 
     def result(index, field)
       (@import.results.find { |result| result['row'] == index } || {}).fetch(field, nil)
-    end
-
-    class << self
-      def friendly_name(friendly_name = nil)
-        @friendly_name = friendly_name if friendly_name
-        @friendly_name || name
-      end
-
-      def fields(data = nil)
-        @fields ||= {}
-        @fields = data if data
-        @fields
-      end
-
-      def field(column_name, column_description, _klass = nil)
-        fields[column_name] = column_description
-      end
-
-      def allow_duplicates(duplicates)
-        @allow_duplicates = duplicates if duplicates
-        @allow_duplicates
-      end
-
-      def includes_header(includes_header)
-        @includes_header = includes_header if includes_header
-        @includes_header
-      end
-
-      def ignore_header(ignore_header)
-        @ignore_header = ignore_header if ignore_header
-        @ignore_header
-      end
-
-      def csv_options(csv_options = nil)
-        @csv_options = csv_options if csv_options
-        @csv_options
-      end
-
-      ##
-      # Set to true to allow duplicate rows to be processed, if false (default) duplicate rows will be marked duplicate and ignored.
-      #
-      def allow_duplicates?
-        @allow_duplicates
-      end
-
-      ##
-      # Set to true when a header is/needs to be present in the file.
-      #
-      def includes_header?
-        @includes_header
-      end
-
-      ##
-      # Set to true when we need to ignore the header for structure check
-      #
-      def ignore_header?
-        @ignore_header
-      end
     end
   end
 end

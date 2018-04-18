@@ -8,6 +8,7 @@ require 'slim'
 
 require 'importo/engine'
 require 'importo/acts_as_import_owner'
+require 'importo/import_field'
 
 module Importo
   class Error < StandardError; end
