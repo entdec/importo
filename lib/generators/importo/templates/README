@@ -1,0 +1,14 @@
+===============================================================================
+
+Some setup you must do manually if you haven't yet:
+
+  1. Check the initializer (in config/initializers/importo.rb) for additional
+     configuration options. Take not of coupon and provider sections.
+
+  2.
+
+  3.
+
+  4.
+
+===============================================================================

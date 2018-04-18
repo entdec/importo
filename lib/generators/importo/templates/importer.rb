@@ -8,8 +8,8 @@ class <%=name%>Importer < ApplicationImporter
   # Whether to ignore the given header and use our internal mapping
   ignore_header false
 
-  fields 'id'   => 'record ID of the <%=name%> (only if you want to update)',
-         'name' => 'name of the <%=name%>'
+  field 'id', 'record ID of the <%=name%> (only if you want to update)'
+  field 'name', 'name of the <%=name%>'
 
   # Here you will build the record based on the row
   def build(row)
