@@ -33,5 +33,17 @@ module Importo
       end
       assert_equal 'completed', import.reload.state
     end
+
+    test 'finds the correct header row when it is the first row' do
+      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[id name description], %w[id test test-description]]).path)
+      importer = import.importer
+      assert_equal 1, importer.send(:header_row)
+    end
+
+    test 'finds the correct header row when there are random rows in front' do
+      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[], %w[a b c], %w[id name description], %w[id test test-description]]).path)
+      importer = import.importer
+      assert_equal 3, importer.send(:header_row)
+    end
   end
 end

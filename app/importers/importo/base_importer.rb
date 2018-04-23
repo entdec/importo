@@ -185,7 +185,7 @@ module Importo
       return 0 unless includes_header?
       return @header_row if @header_row
 
-      most_valid_counts = (0...10).map do |row_nr|
+      most_valid_counts = (1..10).map do |row_nr|
         [row_nr, cells_from_row(row_nr).reject(&:nil?).size - invalid_header_names_for_row(row_nr).size]
       end
       @header_row = most_valid_counts.max { |a, b| a.last <=> b.last }.first
