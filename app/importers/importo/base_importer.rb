@@ -5,7 +5,7 @@ module Importo
     include ActionView::Helpers::SanitizeHelper
     include ImporterDSL
 
-    delegate :friendly_name, :fields, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
+    delegate :friendly_name, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
     attr_reader :import
 
     def initialize(imprt = nil)
@@ -49,9 +49,9 @@ module Importo
       xls = Axlsx::Package.new
       workbook = xls.workbook
       sheet = workbook.add_worksheet(name: 'Import')
-      sheet.add_row fields.keys
+      sheet.add_row columns.keys
 
-      fields.each.with_index do |f, i|
+      columns.each.with_index do |f, i|
         field = f.last
         sheet.add_comment ref: "#{('A'..'ZZ').to_a[i]}1", author: self.class.name, text: field.description, visible: false if field.description.present?
       end
@@ -102,7 +102,7 @@ module Importo
     private
 
     def header_names
-      return fields.keys if !includes_header? || ignore_header?
+      return columns.keys if !includes_header? || ignore_header?
       @header_names ||= cells_from_row(header_row)
     end
 
@@ -193,7 +193,7 @@ module Importo
     end
 
     def allowed_header_names
-      @allowed_header_names ||= fields.keys + headers_added_by_import
+      @allowed_header_names ||= columns.keys + headers_added_by_import
     end
 
     def spreadsheet

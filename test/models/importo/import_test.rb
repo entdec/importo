@@ -6,9 +6,9 @@ class AccountImporter < Importo::BaseImporter
   includes_header true
   allow_duplicates false
 
-  field 'id', 'id'
-  field 'name', 'name'
-  field 'description', 'description'
+  column 'id', 'id'
+  column 'name', 'name'
+  column 'description', 'description'
 
   def build(row)
     account = Account.find_or_create_by(id: row['id'])

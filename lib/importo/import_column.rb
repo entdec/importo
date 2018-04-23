@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Importo
-  class ImportField
+  class ImportColumn
     attr_accessor :name, :description, :options
 
     def initialize(name, description, options)

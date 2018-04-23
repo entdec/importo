@@ -12,13 +12,18 @@ module ImporterDSL
       @friendly_name || name
     end
 
-    def fields
-      @fields ||= {}
-      @fields
+    def columns
+      @columns ||= {}
+      @columns
     end
 
-    def field(column_name, column_description, options = {})
-      fields[column_name] = Importo::ImportField.new(column_name, column_description, options)
+    def column(name, description, options = {})
+      columns[name] = Importo::ImportColumn.new(name, description, options)
+    end
+
+    def model(model)
+      @model = model if model
+      @model
     end
 
     def allow_duplicates(duplicates)
