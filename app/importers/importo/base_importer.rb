@@ -99,15 +99,15 @@ module Importo
       invalid_header_names.count.zero?
     end
 
+    def invalid_header_names
+      invalid_header_names_for_row(header_row)
+    end
+
     private
 
     def header_names
       return columns.keys if !includes_header? || ignore_header?
       @header_names ||= cells_from_row(header_row)
-    end
-
-    def invalid_header_names
-      invalid_header_names_for_row(1)
     end
 
     def loop_data_rows
@@ -183,9 +183,12 @@ module Importo
 
     def header_row
       return 0 unless includes_header?
+      return @header_row if @header_row
 
-      # TODO: Implement search lines 1 through 10 for best matching header with `invalid_header_names_for_row(index)`
-      @header_row ||= 1
+      most_valid_counts = (0...10).map do |row_nr|
+        [row_nr, cells_from_row(row_nr).reject(&:nil?).size - invalid_header_names_for_row(row_nr).size]
+      end
+      @header_row = most_valid_counts.max { |a, b| a.last <=> b.last }.first
     end
 
     def invalid_header_names_for_row(index)

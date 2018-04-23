@@ -42,10 +42,6 @@ module Importo
       errors.add(:file_name, I18n.t('import.errors.structure_invalid', invalid_headers: importer.invalid_header_names.join(', '))) unless importer.structure_valid?
     end
 
-    def importable_fields
-      importer.fields
-    end
-
     def importer
       @importer ||= "#{kind.camelize}Importer".constantize.new(self)
     end

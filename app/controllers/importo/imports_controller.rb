@@ -9,7 +9,6 @@ module Importo
     def new
       @import = Import.new(kind: params[:kind])
       add_breadcrumb @import.importer.friendly_name if defined? add_breadcrumb
-      @columns = @import.importable_fields
     end
 
     def create
@@ -17,7 +16,6 @@ module Importo
       if @import.valid? && @import.schedule!
         redirect_to new_import_url, notice: t('.flash.success', id: @import.id)
       else
-        @columns = @import.importable_fields
         flash[:error] = t('.flash.error')
         render :new
       end
