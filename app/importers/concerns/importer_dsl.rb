@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/concern'
 
 module ImporterDSL
@@ -9,7 +11,7 @@ module ImporterDSL
   class_methods do
     def friendly_name(friendly_name = nil)
       @friendly_name = friendly_name if friendly_name
-      @friendly_name || name
+      @friendly_name || model || name
     end
 
     def columns
@@ -21,7 +23,7 @@ module ImporterDSL
       columns[name] = Importo::ImportColumn.new(name, description, options)
     end
 
-    def model(model)
+    def model(model = nil)
       @model = model if model
       @model
     end

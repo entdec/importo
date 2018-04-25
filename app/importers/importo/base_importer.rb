@@ -5,7 +5,7 @@ module Importo
     include ActionView::Helpers::SanitizeHelper
     include ImporterDSL
 
-    delegate :friendly_name, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
+    delegate :friendly_name, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
     attr_reader :import
 
     def initialize(imprt = nil)
@@ -13,10 +13,42 @@ module Importo
     end
 
     #
-    # Build a record based on the row
+    # Build a record based on the row, when you override build, depending on your needs you will need to
+    # call populate yourself, or skip this altogether.
     #
-    def build(_row)
-      raise NotImplementedError, "Implement 'build' method in #{self.class.name} class"
+    def build(row)
+      populate(row)
+    end
+
+    #
+    # Assists in pre-populating the record for you
+    # It wil try and find the record by id, or initialize a new record with it's attributes set based on the mapping from columns
+    #
+    def populate(row, record = nil)
+      raise 'No attributes set for columns' unless columns.any? { |_, v| v.options[:attribute].present? }
+
+      result = if record
+                 record
+               else
+                 raise 'No model set' unless model
+                 model.find_or_initialize_by(id: value_for(row, 'id'))
+               end
+
+      cols_to_populate = columns.select do |_, v|
+        v.options[:attribute].present?
+      end
+
+      attributes = {}
+
+      cols_to_populate.each do |k, col|
+        attr = col.options[:attribute]
+        # puts "attr: #{attr}, value: #{value_for(row, attr)}, test: #{row[k]}"
+        attributes = set_attribute(attributes, attr, row[k])
+      end
+
+      record.assign_attributes(attributes)
+
+      result
     end
 
     #
@@ -103,7 +135,19 @@ module Importo
       invalid_header_names_for_row(header_row)
     end
 
+    def value_for(row, attribute)
+      col = columns.find do |_, v|
+        v.options[:attribute] == attribute
+      end
+      row[col.first]
+    end
+
     private
+
+    def set_attribute(hash, path, value)
+      tmp_hash = path.split('.').reverse.inject(value) { |h, s| { s => h } }
+      hash.deep_merge(tmp_hash)
+    end
 
     def header_names
       return columns.keys if !includes_header? || ignore_header?
@@ -188,7 +232,7 @@ module Importo
       most_valid_counts = (1..10).map do |row_nr|
         [row_nr, cells_from_row(row_nr).reject(&:nil?).size - invalid_header_names_for_row(row_nr).size]
       end
-      @header_row = most_valid_counts.max { |a, b| a.last <=> b.last }.first
+      @header_row = most_valid_counts.max_by(&:last).first
     end
 
     def invalid_header_names_for_row(index)
@@ -201,10 +245,14 @@ module Importo
 
     def spreadsheet
       @spreadsheet ||= case File.extname(@import.file_name)
-                       when '.csv' then Roo::CSV.new(@import.file_name, csv_options: csv_options)
-                       when '.xls' then Roo::Excel.new(@import.file_name)
-                       when '.xlsx' then Roo::Excelx.new(@import.file_name)
-                       else raise "Unknown file type: #{@import.file_name.split('/').last}"
+                       when '.csv' then
+                         Roo::CSV.new(@import.file_name, csv_options: csv_options)
+                       when '.xls' then
+                         Roo::Excel.new(@import.file_name)
+                       when '.xlsx' then
+                         Roo::Excelx.new(@import.file_name)
+                       else
+                         raise "Unknown file type: #{@import.file_name.split('/').last}"
                        end
     end
 

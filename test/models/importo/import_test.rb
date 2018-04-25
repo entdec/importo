@@ -6,22 +6,17 @@ class AccountImporter < Importo::BaseImporter
   includes_header true
   allow_duplicates false
 
-  column 'id', 'id'
-  column 'name', 'name'
-  column 'description', 'description'
+  model Account
 
-  def build(row)
-    account = Account.find_or_create_by(id: row['id'])
-    account.name = row['name']
-    account.description = row['description']
-    account
-  end
+  column 'id', 'id', attribute: 'id'
+  column 'name', 'name', attribute: 'name'
+  column 'description', 'description', attribute: 'description'
 end
 
 module Importo
   class ImportTest < ActiveSupport::TestCase
     test 'imports an excel file' do
-      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[id name description], %w[id test test-description]]).path)
+      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[id name description], %w[aid atest atest-description]]).path)
       import.schedule
       assert_equal 'scheduled', import.state
       import.import
@@ -35,13 +30,13 @@ module Importo
     end
 
     test 'finds the correct header row when it is the first row' do
-      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[id name description], %w[id test test-description]]).path)
+      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[id name description], %w[aid atest atest-description]]).path)
       importer = import.importer
       assert_equal 1, importer.send(:header_row)
     end
 
     test 'finds the correct header row when there are random rows in front' do
-      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[], %w[a b c], %w[id name description], %w[id test test-description]]).path)
+      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[], %w[a b c], %w[id name description], %w[aid atest atest-description]]).path)
       importer = import.importer
       assert_equal 3, importer.send(:header_row)
     end
