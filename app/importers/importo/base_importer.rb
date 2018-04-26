@@ -96,8 +96,8 @@ module Importo
 
         # Introduction
         introduction.each_with_index do |intro, i|
-          sheet.add_row [intro], style: [introduction_style]*columns.count
-          sheet.merge_cells "A#{i+1}:#{nr_to_col(columns.count-1)}#{i+1}"
+          sheet.add_row [intro], style: [introduction_style] * columns.count
+          sheet.merge_cells "A#{i + 1}:#{nr_to_col(columns.count - 1)}#{i + 1}"
         end
 
         # Header row
@@ -105,16 +105,16 @@ module Importo
 
         columns.each.with_index do |f, i|
           field = f.last
-          sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count+1}", author: '', text: field.hint, visible: false if field.hint.present?
+          sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count + 1}", author: '', text: field.hint, visible: false if field.hint.present?
         end
 
         # Examples
-        sheet.add_row columns.map { |_, c| c.options[:example] ? c.options[:example] : '' }
+        sheet.add_row(columns.map { |_, c| c.options[:example] ? c.options[:example] : '' })
       end
 
       sheet.column_info[0].width = 10
 
-      sheet = workbook.add_worksheet(name: 'Explanation')
+      sheet = workbook.add_worksheet(name: I18n.t('importo.sheet.explanation.name'))
 
       workbook.styles do |style|
         introduction_style = style.add_style(bg_color: 'E2EEDA')
@@ -125,21 +125,20 @@ module Importo
 
         # Introduction
         introduction.each_with_index do |intro, i|
-          sheet.add_row [intro], style: [introduction_style]*2
-          sheet.merge_cells "A#{i+1}:B#{i+1}"
+          sheet.add_row [intro], style: [introduction_style] * 2
+          sheet.merge_cells "A#{i + 1}:B#{i + 1}"
         end
 
         # Header row
-        sheet.add_row ['Kolom', 'Uitleg'], style: [header_style]*2
+        sheet.add_row [I18n.t('importo.sheet.explanation.column'), I18n.t('importo.sheet.explanation.explanation')], style: [header_style] * 2
         columns.each do |k, c|
           styles = [c.options[:required] ? required_style : column_style]
           sheet.add_row [k, c.options[:explanation]], style: styles
         end
-
       end
 
       sheet.column_info[0].width = 40
-      sheet.column_info[1].width = 100
+      sheet.column_info[1].width = 150
 
       xls.to_stream
     end
@@ -154,7 +153,7 @@ module Importo
         alert_cell = style.add_style(bg_color: 'dd7777')
         duplicate_cell = style.add_style(bg_color: 'ddd777')
 
-        sheet = workbook.add_worksheet(name: 'Import')
+        sheet = workbook.add_worksheet(name: I18n.t('importo.sheet.results.name'))
 
         headers = (header_names - headers_added_by_import) + headers_added_by_import
         rich_text_headers = headers.map { |header| Axlsx::RichText.new.tap { |rt| rt.add_run(header.dup, b: true) } }
@@ -197,16 +196,16 @@ module Importo
 
     private
 
-    def self.t(key, options={})
-      if I18n.exists? "importers.#{name.underscore}#{key}".to_sym
-        I18n.t(key, options.merge(scope: "importers.#{name.underscore}".to_sym))
-      else
-        nil
+    class << self
+      private
+
+      def t(key, options = {})
+        I18n.t(key, options.merge(scope: "importers.#{name.underscore}".to_sym)) if I18n.exists? "importers.#{name.underscore}#{key}".to_sym
       end
     end
 
-    def nr_to_col(nr)
-      ('A'..'ZZ').to_a[nr]
+    def nr_to_col(number)
+      ('A'..'ZZ').to_a[number]
     end
 
     def set_attribute(hash, path, value)
@@ -266,7 +265,7 @@ module Importo
     end
 
     def duplicate(row_hash, id)
-      # TODO: Check if row_hash has an id and if it matches the id
+      return false if row_hash['id'] == id
       Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND id <> :id", id: id).first
     end
 

@@ -1,5 +1,12 @@
 nl:
   importo:
+    sheet:
+      results:
+        name: Resultaten
+      explanation:
+        name: Uitleg
+        column: Kolom
+        explanation: Uitleg
     breadcrumbs:
       imports: Imports
     imports:

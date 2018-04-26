@@ -1,5 +1,12 @@
 en:
   importo:
+    sheet:
+      results:
+        name: Results
+      explanation:
+        name: Explanation
+        column: Column
+        explanation: Explanation
     breadcrumbs:
       imports: Imports
     imports:

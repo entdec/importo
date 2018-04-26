@@ -53,7 +53,6 @@ module Importo
         end
       end
       assert_equal 'completed', import.reload.state, import.results
-
     end
 
     test 'finds the correct header row when it is the first row' do
