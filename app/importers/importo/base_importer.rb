@@ -5,7 +5,7 @@ module Importo
     include ActionView::Helpers::SanitizeHelper
     include ImporterDSL
 
-    delegate :friendly_name, :explanation, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
+    delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
     attr_reader :import
 
     def initialize(imprt = nil)
@@ -86,17 +86,18 @@ module Importo
     # Generates a sample excel file as a stream
     #
     def sample_file
+      puts "LOCALE: #{I18n.locale}"
       xls = Axlsx::Package.new
       workbook = xls.workbook
-      sheet = workbook.add_worksheet(name: 'Import')
+      sheet = workbook.add_worksheet(name: model.name.pluralize)
       workbook.styles do |style|
-        explanation_style = style.add_style(bg_color: 'fff2cc')
-        header_style = style.add_style(b: true, bg_color: 'C6E0B4', border: { style: :thin, color: '000000' })
-        header_required_style = style.add_style(b: true, bg_color: 'C6E0B4', fg_color: 'ff0000', border: { style: :thin, color: '000000' })
+        introduction_style = style.add_style(bg_color: 'E2EEDA')
+        header_style = style.add_style(b: true, bg_color: 'A8D08E', border: { style: :thin, color: '000000' })
+        header_required_style = style.add_style(b: true, bg_color: 'A8D08E', fg_color: 'C00100', border: { style: :thin, color: '000000' })
 
-        # Explanation
-        explanation.each_with_index do |ex, i|
-          sheet.add_row [ex], style: [explanation_style]*columns.count
+        # Introduction
+        introduction.each_with_index do |ex, i|
+          sheet.add_row [ex], style: [introduction_style]*columns.count
           sheet.merge_cells "A#{i+1}:#{nr_to_col(columns.count-1)}#{i+1}"
         end
 
@@ -105,7 +106,7 @@ module Importo
 
         columns.each.with_index do |f, i|
           field = f.last
-          sheet.add_comment ref: "#{nr_to_col(i)}#{explanation.count+1}", author: '', text: field.description, visible: false if field.description.present?
+          sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count+1}", author: '', text: field.hint, visible: false if field.hint.present?
         end
 
         # Examples
@@ -113,6 +114,33 @@ module Importo
       end
 
       sheet.column_info[0].width = 10
+
+      sheet = workbook.add_worksheet(name: 'Explanation')
+
+      workbook.styles do |style|
+        introduction_style = style.add_style(bg_color: 'E2EEDA')
+        header_style = style.add_style(b: true, bg_color: 'A8D08E', border: { style: :thin, color: '000000' })
+
+        column_style = style.add_style(b: true)
+        required_style = style.add_style(b: true, fg_color: 'C00100')
+
+        # Introduction
+        introduction.each_with_index do |ex, i|
+          sheet.add_row [ex], style: [introduction_style]*2
+          sheet.merge_cells "A#{i+1}:B#{i+1}"
+        end
+
+        # Header row
+        sheet.add_row ['Kolom', 'Uitleg'], style: [header_style]*2
+        columns.each do |k, c|
+          styles = [c.options[:required] ? required_style : column_style]
+          sheet.add_row [k, c.options[:explanation]], style: styles
+        end
+
+      end
+
+      sheet.column_info[0].width = 40
+      sheet.column_info[1].width = 100
 
       xls.to_stream
     end
@@ -169,6 +197,14 @@ module Importo
     end
 
     private
+
+    def self.t(key, options={})
+      if I18n.exists? "importers.#{name.underscore}#{key}".to_sym
+        I18n.t(key, options.merge(scope: "importers.#{name.underscore}".to_sym))
+      else
+        nil
+      end
+    end
 
     def nr_to_col(nr)
       ('A'..'ZZ').to_a[nr]
