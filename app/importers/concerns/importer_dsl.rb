@@ -28,11 +28,22 @@ module ImporterDSL
     #
     # Adds a column definition
     #
-    # @param [Object] name
-    # @param [Object] hint short explanation how or what to enter in the field, for more text use options[:explanation]
-    # @param [Object] options
+    # @param [Object] args
     # @param [Object] block which will filter the results before storing the value in the attribute, this is useful for lookups or reformatting
-    def column(name, hint, options = {}, &block)
+    def column(*args, &block)
+      options = args.extract_options!
+
+      name = args[0]
+      name ||= t(".column.#{options[:attribute]}")
+      name ||= options[:name]
+      name ||= options[:attribute]
+
+      hint = args[1]
+      hint ||= t(".hint.#{options[:attribute]}")
+      hint ||= options[:hint]
+
+      options[:explanation] ||= t(".explanation.#{options[:attribute]}")
+
       columns[name] = Importo::ImportColumn.new(name, hint, options, &block)
     end
 

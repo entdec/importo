@@ -86,7 +86,6 @@ module Importo
     # Generates a sample excel file as a stream
     #
     def sample_file
-      puts "LOCALE: #{I18n.locale}"
       xls = Axlsx::Package.new
       workbook = xls.workbook
       sheet = workbook.add_worksheet(name: model.name.pluralize)
@@ -96,8 +95,8 @@ module Importo
         header_required_style = style.add_style(b: true, bg_color: 'A8D08E', fg_color: 'C00100', border: { style: :thin, color: '000000' })
 
         # Introduction
-        introduction.each_with_index do |ex, i|
-          sheet.add_row [ex], style: [introduction_style]*columns.count
+        introduction.each_with_index do |intro, i|
+          sheet.add_row [intro], style: [introduction_style]*columns.count
           sheet.merge_cells "A#{i+1}:#{nr_to_col(columns.count-1)}#{i+1}"
         end
 
@@ -125,8 +124,8 @@ module Importo
         required_style = style.add_style(b: true, fg_color: 'C00100')
 
         # Introduction
-        introduction.each_with_index do |ex, i|
-          sheet.add_row [ex], style: [introduction_style]*2
+        introduction.each_with_index do |intro, i|
+          sheet.add_row [intro], style: [introduction_style]*2
           sheet.merge_cells "A#{i+1}:B#{i+1}"
         end
 
@@ -267,6 +266,7 @@ module Importo
     end
 
     def duplicate(row_hash, id)
+      # TODO: Check if row_hash has an id and if it matches the id
       Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND id <> :id", id: id).first
     end
 
