@@ -14,13 +14,26 @@ module ImporterDSL
       @friendly_name || model || name
     end
 
+    def explanation(explanation = nil)
+      @explanation ||= []
+      @explanation = explanation if explanation
+      @explanation
+    end
+
     def columns
       @columns ||= {}
       @columns
     end
 
-    def column(name, description, options = {})
-      columns[name] = Importo::ImportColumn.new(name, description, options)
+    #
+    # Adds a column definition
+    #
+    # @param [Object] name
+    # @param [Object] description
+    # @param [Object] options
+    # @param [Object] block which will filter the results before storing the value in the attribute, this is useful for lookups or reformatting
+    def column(name, description, options = {}, &block)
+      columns[name] = Importo::ImportColumn.new(name, description, options, &block)
     end
 
     def model(model = nil)

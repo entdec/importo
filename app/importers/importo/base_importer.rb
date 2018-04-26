@@ -5,7 +5,7 @@ module Importo
     include ActionView::Helpers::SanitizeHelper
     include ImporterDSL
 
-    delegate :friendly_name, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
+    delegate :friendly_name, :explanation, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
     attr_reader :import
 
     def initialize(imprt = nil)
@@ -38,15 +38,23 @@ module Importo
         v.options[:attribute].present?
       end
 
-      attributes = {}
-
       cols_to_populate.each do |k, col|
+        attributes = {}
         attr = col.options[:attribute]
-        # puts "attr: #{attr}, value: #{value_for(row, attr)}, test: #{row[k]}"
-        attributes = set_attribute(attributes, attr, row[k])
-      end
 
-      record.assign_attributes(attributes)
+        value = row[k]
+        if value && col.proc
+          proc = col.proc
+          proc_result = instance_exec row[k], record, row, &proc
+          value = proc_result if proc_result
+        end
+        value || col.options[:default]
+
+        attributes = set_attribute(attributes, attr, value) if value.present?
+
+        # We assign each iteration to use intermediate results
+        result.assign_attributes(attributes)
+      end
 
       result
     end
@@ -81,12 +89,30 @@ module Importo
       xls = Axlsx::Package.new
       workbook = xls.workbook
       sheet = workbook.add_worksheet(name: 'Import')
-      sheet.add_row columns.keys
+      workbook.styles do |style|
+        explanation_style = style.add_style(bg_color: 'fff2cc')
+        header_style = style.add_style(b: true, bg_color: 'C6E0B4', border: { style: :thin, color: '000000' })
+        header_required_style = style.add_style(b: true, bg_color: 'C6E0B4', fg_color: 'ff0000', border: { style: :thin, color: '000000' })
 
-      columns.each.with_index do |f, i|
-        field = f.last
-        sheet.add_comment ref: "#{('A'..'ZZ').to_a[i]}1", author: self.class.name, text: field.description, visible: false if field.description.present?
+        # Explanation
+        explanation.each_with_index do |ex, i|
+          sheet.add_row [ex], style: [explanation_style]*columns.count
+          sheet.merge_cells "A#{i+1}:#{nr_to_col(columns.count-1)}#{i+1}"
+        end
+
+        # Header row
+        sheet.add_row columns.keys, style: columns.map { |_, c| c.options[:required] ? header_required_style : header_style }
+
+        columns.each.with_index do |f, i|
+          field = f.last
+          sheet.add_comment ref: "#{nr_to_col(i)}#{explanation.count+1}", author: '', text: field.description, visible: false if field.description.present?
+        end
+
+        # Examples
+        sheet.add_row columns.map { |_, c| c.options[:example] ? c.options[:example] : '' }
       end
+
+      sheet.column_info[0].width = 10
 
       xls.to_stream
     end
@@ -143,6 +169,10 @@ module Importo
     end
 
     private
+
+    def nr_to_col(nr)
+      ('A'..'ZZ').to_a[nr]
+    end
 
     def set_attribute(hash, path, value)
       tmp_hash = path.split('.').reverse.inject(value) { |h, s| { s => h } }
@@ -229,7 +259,7 @@ module Importo
       return 0 unless includes_header?
       return @header_row if @header_row
 
-      most_valid_counts = (1..10).map do |row_nr|
+      most_valid_counts = (1..20).map do |row_nr|
         [row_nr, cells_from_row(row_nr).reject(&:nil?).size - invalid_header_names_for_row(row_nr).size]
       end
       @header_row = most_valid_counts.max_by(&:last).first

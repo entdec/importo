@@ -2,12 +2,13 @@
 
 module Importo
   class ImportColumn
-    attr_accessor :name, :description, :options
+    attr_accessor :name, :description, :options, :proc
 
-    def initialize(name, description, options)
+    def initialize(name, description, options, &block)
       @name = name
       @description = description
-      @options = options
+      @options = options || {}
+      @proc = block
     end
   end
 end
