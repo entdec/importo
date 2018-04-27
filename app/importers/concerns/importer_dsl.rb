@@ -34,12 +34,12 @@ module ImporterDSL
       options = args.extract_options!
 
       name = args[0]
-      name ||= t(".column.#{options[:attribute]}")
+      name ||= t(".column.#{options[:attribute]}") if options[:attribute]
       name ||= options[:name]
       name ||= options[:attribute]
 
       hint = args[1]
-      hint ||= t(".hint.#{options[:attribute]}")
+      hint ||= t(".hint.#{options[:attribute]}") if options[:attribute]
       hint ||= options[:hint]
 
       options[:explanation] ||= t(".explanation.#{options[:attribute]}")

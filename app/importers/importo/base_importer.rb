@@ -5,7 +5,7 @@ module Importo
     include ActionView::Helpers::SanitizeHelper
     include ImporterDSL
 
-    delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, to: :class
+    delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, :t, to: :class
     attr_reader :import
 
     def initialize(imprt = nil)
@@ -108,8 +108,14 @@ module Importo
           sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count + 1}", author: '', text: field.hint, visible: false if field.hint.present?
         end
 
+        number = workbook.styles.add_style format_code: '#'
+        text = workbook.styles.add_style format_code: '@'
+
+        data = columns.map { |_, c| c.options[:example] ? c.options[:example] : '' }
+        styles = columns.map { |_, c| c.options[:example].is_a?(Numeric) ? number : text }
+
         # Examples
-        sheet.add_row(columns.map { |_, c| c.options[:example] ? c.options[:example] : '' })
+        sheet.add_row data, style: styles
       end
 
       sheet.column_info[0].width = 10
@@ -188,17 +194,15 @@ module Importo
     end
 
     def value_for(row, attribute)
-      col = columns.find do |_, v|
+      col = columns.detect do |_, v|
         v.options[:attribute] == attribute
       end
-      row[col.first]
+      row[col]
     end
 
     private
 
     class << self
-      private
-
       def t(key, options = {})
         I18n.t(key, options.merge(scope: "importers.#{name.underscore}".to_sym)) if I18n.exists? "importers.#{name.underscore}#{key}".to_sym
       end
