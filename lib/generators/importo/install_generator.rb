@@ -16,6 +16,7 @@ module Importo
 
       def copy_locale
         copy_file '../../../config/locales/en.yml', 'config/locales/importo.en.yml'
+        copy_file '../../../config/locales/nl.yml', 'config/locales/importo.nl.yml'
       end
 
       def show_readme
