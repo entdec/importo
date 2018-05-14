@@ -25,6 +25,10 @@ module Importo
       send_data Import.new(kind: params[:kind]).importer.sample_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: 'sample.xlsx'
     end
 
+    def index
+      @imports = Import.where(importo_ownable: Importo.config.current_import_owner).order(created_at: :desc).limit(50)
+    end
+
     private
 
     def import_params

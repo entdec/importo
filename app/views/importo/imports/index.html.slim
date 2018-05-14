@@ -1,0 +1,16 @@
+table.table
+  thead
+    tr
+      th Kind
+      th File name
+      th Date
+      th State
+      th Result
+  tbody
+    - @imports.each do |import|
+      tr
+        td= import.kind
+        td= import.file_name.split('/').last
+        td= l(import.created_at.in_time_zone(Time.zone), format: :short).to_s
+        td= import.state
+        td= import.result_message
