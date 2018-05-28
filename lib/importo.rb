@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'aasm'
 require 'axlsx'
 require 'roo'
 require 'roo-xls'
 require 'slim'
+require 'state_machines-activerecord'
 
 require 'importo/engine'
 require 'importo/acts_as_import_owner'

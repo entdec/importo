@@ -2,8 +2,6 @@
 
 module Importo
   class Import < ApplicationRecord
-    include AASM
-
     belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
@@ -12,29 +10,33 @@ module Importo
     validates :file_name, presence: true
     validate :content_validator
 
-    aasm column: :state, no_direct_assignment: true do
-      state :new, initial: true
+    state_machine :state, initial: :new do
+      state :importing
+      state :scheduled
+      state :completed
+      state :failed
 
-      state :importing, after_enter: ->(imprt) { Importo.config.import_callback(imprt, :importing) }
-      state :scheduled, after_enter: ->(imprt) { ImportJob.perform_later(imprt.id) }
-      state :completed, after_enter: ->(imprt) { Importo.config.import_callback(imprt, :completed) }
-      state :failed, after_enter: ->(imprt) { Importo.config.import_callback(imprt, :failed) }
+      after_transition any => any do |imprt, transition|
+        Importo.config.import_callback(imprt, transition.to_name)
+      end
+
+      after_transition any => :scheduled, do: :schedule_import
 
       event :schedule do
-        transitions from: :new, to: :scheduled
+        transition new: :scheduled
       end
 
       event :import do
-        transitions from: :new, to: :importing
-        transitions from: :scheduled, to: :importing
+        transition new: :importing
+        transition scheduled: :importing
       end
 
       event :complete do
-        transitions from: :importing, to: :completed
+        transition importing: :completed
       end
 
       event :failure do
-        transitions from: :importing, to: :failed
+        transition importing: :failed
       end
     end
 
@@ -44,6 +46,12 @@ module Importo
 
     def importer
       @importer ||= "#{kind.camelize}Importer".constantize.new(self)
+    end
+
+    private
+
+    def schedule_import
+      ImportJob.perform_later(self.id)
     end
   end
 end
