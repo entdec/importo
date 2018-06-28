@@ -51,7 +51,7 @@ module Importo
     private
 
     def schedule_import
-      ImportJob.perform_later(self.id)
+      ImportJob.perform_later(id)
     end
   end
 end

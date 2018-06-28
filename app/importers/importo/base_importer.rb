@@ -141,7 +141,7 @@ module Importo
 
         # Header row
         sheet.add_row [I18n.t('importo.sheet.explanation.column'), I18n.t('importo.sheet.explanation.explanation')], style: [header_style] * 2
-        columns.each do |k, c|
+        columns.each do |_, c|
           styles = [c.options[:required] ? required_style : column_style]
           sheet.add_row [c.name, c.explanation], style: styles
         end
