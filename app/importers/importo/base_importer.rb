@@ -10,8 +10,7 @@ module Importo
 
     def initialize(imprt = nil)
       @import = imprt
-      I18n.locale = @import.locale
-      Importo.config.logger.info "Locale: #{I18n.locale}"
+      I18n.locale = @import.locale if @import
     end
 
     #
