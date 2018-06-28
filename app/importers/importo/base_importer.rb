@@ -33,7 +33,7 @@ module Importo
                  record
                else
                  raise 'No model set' unless model
-                 model.find_or_initialize_by(id: value_for(row, 'id'))
+                 model.find_or_initialize_by(id: row['id'])
                end
 
       cols_to_populate = columns.select do |_, v|
@@ -47,7 +47,7 @@ module Importo
         value = row[k]
         if value && col.proc
           proc = col.proc
-          proc_result = instance_exec row[k], record, row, &proc
+          proc_result = instance_exec value, record, row, &proc
           value = proc_result if proc_result
         end
         value || col.options[:default]
@@ -98,12 +98,13 @@ module Importo
 
         # Introduction
         introduction.each_with_index do |intro, i|
-          sheet.add_row [intro], style: [introduction_style] * columns.count
+          text = intro.is_a?(Symbol) ? I18n.t(intro, scope: [:importers, self.class.name.underscore.to_s, :introduction]) : intro
+          sheet.add_row [text], style: [introduction_style] * columns.count
           sheet.merge_cells "A#{i + 1}:#{nr_to_col(columns.count - 1)}#{i + 1}"
         end
-
+        # binding.pry
         # Header row
-        sheet.add_row columns.keys, style: columns.map { |_, c| c.options[:required] ? header_required_style : header_style }
+        sheet.add_row columns.values.map(&:name), style: columns.map { |_, c| c.options[:required] ? header_required_style : header_style }
 
         columns.each.with_index do |f, i|
           field = f.last
@@ -133,7 +134,8 @@ module Importo
 
         # Introduction
         introduction.each_with_index do |intro, i|
-          sheet.add_row [intro], style: [introduction_style] * 2
+          text = intro.is_a?(Symbol) ? I18n.t(intro, scope: [:importers, self.class.name.underscore.to_s, :introduction]) : intro
+          sheet.add_row [text], style: [introduction_style] * 2
           sheet.merge_cells "A#{i + 1}:B#{i + 1}"
         end
 
@@ -141,7 +143,7 @@ module Importo
         sheet.add_row [I18n.t('importo.sheet.explanation.column'), I18n.t('importo.sheet.explanation.explanation')], style: [header_style] * 2
         columns.each do |k, c|
           styles = [c.options[:required] ? required_style : column_style]
-          sheet.add_row [k, c.options[:explanation]], style: styles
+          sheet.add_row [c.name, c.explanation], style: styles
         end
       end
 
@@ -195,11 +197,11 @@ module Importo
       invalid_header_names_for_row(header_row)
     end
 
-    def value_for(row, attribute)
-      col = columns.detect do |_, v|
-        v.options[:attribute] == attribute
+    def col_for(translated_name)
+      col = columns.detect do |k, v|
+        v.name == translated_name || k == translated_name
       end
-      row[col]
+      col
     end
 
     private
@@ -219,15 +221,23 @@ module Importo
       hash.deep_merge(tmp_hash)
     end
 
-    def header_names
+    def attribute_names
       return columns.keys if !includes_header? || ignore_header?
+      translated_header_names = cells_from_row(header_row)
+      @header_names = translated_header_names.map do |name|
+        col_for(name).first
+      end
+    end
+
+    def header_names
+      return columns.values.map(&:name) if !includes_header? || ignore_header?
       @header_names ||= cells_from_row(header_row)
     end
 
     def loop_data_rows
       (data_start_row..spreadsheet.last_row).map do |index|
         row = cells_from_row(index)
-        attributes = Hash[[header_names, row].transpose]
+        attributes = Hash[[attribute_names, row].transpose]
         attributes.reject! { |k, _v| headers_added_by_import.include?(k) }
 
         yield attributes, index
@@ -311,7 +321,7 @@ module Importo
     end
 
     def allowed_header_names
-      @allowed_header_names ||= columns.keys + headers_added_by_import
+      @allowed_header_names ||= columns.values.map(&:name) + headers_added_by_import
     end
 
     def spreadsheet
