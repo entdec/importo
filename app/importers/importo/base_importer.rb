@@ -10,6 +10,7 @@ module Importo
 
     def initialize(imprt = nil)
       @import = imprt
+      I18n.locale = @import.locale
     end
 
     #

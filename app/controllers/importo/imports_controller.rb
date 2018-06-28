@@ -7,12 +7,12 @@ module Importo
     add_breadcrumb I18n.t('importo.breadcrumbs.imports') if defined? add_breadcrumb
 
     def new
-      @import = Import.new(kind: params[:kind])
+      @import = Import.new(kind: params[:kind], locale: I18n.locale)
       add_breadcrumb @import.importer.friendly_name if defined? add_breadcrumb
     end
 
     def create
-      @import = Import.new(import_params.merge(importo_ownable: Importo.config.current_import_owner))
+      @import = Import.new(import_params.merge(locale: I18n.locale, importo_ownable: Importo.config.current_import_owner))
       if @import.valid? && @import.schedule!
         redirect_to new_import_url, notice: t('.flash.success', id: @import.id)
       else
@@ -22,7 +22,7 @@ module Importo
     end
 
     def sample
-      send_data Import.new(kind: params[:kind]).importer.sample_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: 'sample.xlsx'
+      send_data Import.new(kind: params[:kind], locale: I18n.locale).importer.sample_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: 'sample.xlsx'
     end
 
     def index
