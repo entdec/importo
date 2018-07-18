@@ -36,7 +36,7 @@ module Importo
                end
 
       cols_to_populate = columns.select do |_, v|
-        v.options[:attribute].present? && model.column_names.include?(v.options[:attribute].to_s)
+        v.options[:attribute].present?
       end
 
       cols_to_populate.each do |k, col|

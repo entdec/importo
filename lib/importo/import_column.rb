@@ -17,7 +17,7 @@ module Importo
       if options[:attribute]
         I18n.t(".column.#{options[:attribute]}", scope: [:importers, options[:scope]])
       else
-        @name
+        I18n.t(".column.#{@name}", scope: [:importers, options[:scope]], default: @name)
       end
     end
 
