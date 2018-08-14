@@ -274,6 +274,7 @@ module Importo
         nil
       rescue StandardError => e
         errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
+        Rails.logger.error "#{e.message} processing row #{index}: #{e.backtrace.join(';')}"
         register_result(index, class: record.class.name, state: :failure, message: e.message, errors: errors)
         nil
       end
