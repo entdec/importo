@@ -21,6 +21,10 @@ module Importo
       populate(row)
     end
 
+    def failure(row, record, index, exception)
+      Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
+    end
+
     #
     # Assists in pre-populating the record for you
     # It wil try and find the record by id, or initialize a new record with it's attributes set based on the mapping from columns
@@ -274,8 +278,8 @@ module Importo
         nil
       rescue StandardError => e
         errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
-        Rails.logger.error "#{e.message} processing row #{index}: #{e.backtrace.join(';')}"
         error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
+        failure(attributes, record, index, e)
         register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
         nil
       end
