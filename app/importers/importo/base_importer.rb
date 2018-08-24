@@ -84,6 +84,7 @@ module Importo
       @import.complete!
     rescue StandardError => e
       @import.result_message = "Exception: #{e.message}"
+      Rails.logger.error "Importo exception: #{e.message} backtrace #{e.backtrace.join(';')}"
       @import.failure!
     end
 
