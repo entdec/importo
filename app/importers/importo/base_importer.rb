@@ -287,7 +287,6 @@ module Importo
     end
 
     def duplicate(row_hash, id)
-      return false if allow_duplicates?
       return false if row_hash['id'] == id
       Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND id <> :id", id: id).first
     end
