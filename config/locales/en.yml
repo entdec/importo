@@ -17,5 +17,6 @@ en:
         import_button: Import
       create:
         flash:
+          no_file: Import failed, please upload a file.
           error: Import failed, there were problems.
           success: 'Import scheduled with id %{id}, you will get an email with the results.'

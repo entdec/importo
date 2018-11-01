@@ -17,5 +17,6 @@ nl:
         import_button: Importeer
       create:
         flash:
+          no_file: Import mislukt, upload een bestand.
           error: Import mislukt, er waren problemen, voor details zie hieronder.
           success: 'Import geplanned met id %{id}, je krijgt een email met de resultaten.'
