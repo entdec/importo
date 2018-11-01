@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     importo (0.1.0)
-      axlsx (~> 2.1.0.pre)
+      axlsx (~> 3.0.0.pre)
       rails (~> 5)
       roo (~> 2.7)
       roo-xls (~> 1.1)
@@ -52,10 +52,11 @@ GEM
     ansi (1.5.0)
     arel (8.0.0)
     ast (2.4.0)
-    axlsx (2.1.0.pre)
-      htmlentities (~> 4.3.1)
-      nokogiri (>= 1.4.1)
-      rubyzip (~> 1.1.7)
+    axlsx (3.0.0.pre)
+      htmlentities (~> 4.3, >= 4.3.4)
+      mimemagic (~> 0.3)
+      nokogiri (~> 1.8, >= 1.8.2)
+      rubyzip (~> 1.2, >= 1.2.1)
     builder (3.2.3)
     coderay (1.1.2)
     concurrent-ruby (1.0.5)
@@ -72,6 +73,7 @@ GEM
     mail (2.7.0)
       mini_mime (>= 0.1.1)
     method_source (0.9.0)
+    mimemagic (0.3.2)
     mini_mime (1.0.0)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
@@ -137,11 +139,11 @@ GEM
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-ole (1.2.12.1)
     ruby-progressbar (1.9.0)
-    rubyzip (1.1.7)
+    rubyzip (1.2.2)
     slim (3.0.9)
       temple (>= 0.7.6, < 0.9)
       tilt (>= 1.3.3, < 2.1)
-    spreadsheet (1.1.7)
+    spreadsheet (1.1.8)
       ruby-ole (>= 1.0)
     sprockets (3.7.1)
       concurrent-ruby (~> 1.0)
@@ -182,4 +184,4 @@ DEPENDENCIES
   rubocop (~> 0.49)
 
 BUNDLED WITH
-   1.16.1
+   1.16.6
