@@ -48,7 +48,7 @@ module Importo
         attr = col.options[:attribute]
 
         value = row[k]
-        if value && col.proc
+        if value.present? && col.proc
           proc = col.proc
           proc_result = instance_exec value, record, row, &proc
           value = proc_result if proc_result
