@@ -259,6 +259,7 @@ module Importo
     def process_data_row(attributes, index)
       record = nil
       row_hash = Digest::SHA256.base64digest(attributes.inspect)
+      duplicate_import = nil
 
       begin
         ActiveRecord::Base.transaction(requires_new: true) do
@@ -268,14 +269,14 @@ module Importo
           record.validate!
           before_save(record, attributes)
           record.save!
-          raise Importo::DuplicateRowError if duplicate?(row_hash, record.id)
+          duplicate_import = duplicate?(row_hash, record.id)
+          raise Importo::DuplicateRowError if duplicate_import
           register_result(index, class: record.class.name, id: record.id, state: :success)
         end
         record
       rescue Importo::DuplicateRowError
-        dpl = duplicate(row_hash, record.id)
-        record_id = dpl.results.find { |data| data['hash'] == row_hash }['id']
-        register_result(index, id: record_id, state: :duplicate, message: "Row already imported successfully on #{dpl.created_at.to_date}")
+        record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
+        register_result(index, id: record_id, state: :duplicate, message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
         nil
       rescue StandardError => e
         errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
@@ -287,12 +288,11 @@ module Importo
     end
 
     def duplicate(row_hash, id)
-      # return false if row_hash['id'] == id
       Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND id <> :id", id: id).first
     end
 
     def duplicate?(row_hash, id)
-      return false if allow_duplicates?
+      return false if allow_duplicates? || row_hash['id'] == id
       duplicate(row_hash, id)
     end
 
