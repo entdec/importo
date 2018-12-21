@@ -93,6 +93,7 @@ module Importo
     #
     def sample_file
       xls = Axlsx::Package.new
+      xls.use_shared_strings = true
       workbook = xls.workbook
       sheet = workbook.add_worksheet(name: model.name.pluralize)
       workbook.styles do |style|
@@ -135,6 +136,7 @@ module Importo
 
         column_style = style.add_style(b: true)
         required_style = style.add_style(b: true, fg_color: 'C00100')
+        wrap_style = workbook.styles.add_style alignment: { wrap_text: true }
 
         # Introduction
         introduction.each_with_index do |intro, i|
@@ -146,7 +148,7 @@ module Importo
         # Header row
         sheet.add_row [I18n.t('importo.sheet.explanation.column'), I18n.t('importo.sheet.explanation.explanation')], style: [header_style] * 2
         columns.each do |_, c|
-          styles = [c.options[:required] ? required_style : column_style]
+          styles = [c.options[:required] ? required_style : column_style, wrap_style]
           sheet.add_row [c.name, c.explanation], style: styles
         end
       end
@@ -162,6 +164,7 @@ module Importo
     #
     def results_file
       xls = Axlsx::Package.new
+      xls.use_shared_strings = true
       workbook = xls.workbook
       workbook.styles do |style|
         alert_cell = style.add_style(bg_color: 'dd7777')
