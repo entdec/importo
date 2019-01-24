@@ -4,13 +4,23 @@ module Importo
   class BaseImporter
     include ActionView::Helpers::SanitizeHelper
     include ImporterDSL
+    include ActiveStorage::Downloading
 
     delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, :t, to: :class
-    attr_reader :import
+    attr_reader :import, :blob
 
     def initialize(imprt = nil)
       @import = imprt
-      I18n.locale = @import.locale if @import
+      return unless import
+      I18n.locale = import.locale
+
+      return unless import.original.attached?
+      @blob = import.original
+      @original = Tempfile.new([ "ActiveStorage", import.original.filename.extension_with_delimiter])
+      @original.binmode
+      download_blob_to @original
+      @original.flush
+      @original.rewind
     end
 
     #
@@ -190,8 +200,6 @@ module Importo
         sheet.auto_filter = "A1:#{sheet.dimension.last_cell_reference}"
       end
 
-      FileUtils.rm @import.file_name
-
       xls.to_stream
     end
 
@@ -334,15 +342,15 @@ module Importo
     end
 
     def spreadsheet
-      @spreadsheet ||= case File.extname(@import.file_name)
+      @spreadsheet ||= case File.extname(@original.path)
                        when '.csv' then
-                         Roo::CSV.new(@import.file_name, csv_options: csv_options)
+                         Roo::CSV.new(@original.path, csv_options: csv_options)
                        when '.xls' then
-                         Roo::Excel.new(@import.file_name)
+                         Roo::Excel.new(@original.path)
                        when '.xlsx' then
-                         Roo::Excelx.new(@import.file_name)
+                         Roo::Excelx.new(@original.path)
                        else
-                         raise "Unknown file type: #{@import.file_name.split('/').last}"
+                         raise "Unknown file type: #{@original.path.split('/').last}"
                        end
     end
 
@@ -363,5 +371,6 @@ module Importo
     def result(index, field)
       (@import.results.find { |result| result['row'] == index } || {}).fetch(field, nil)
     end
+
   end
 end

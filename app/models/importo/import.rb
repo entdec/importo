@@ -2,13 +2,19 @@
 
 module Importo
   class Import < ApplicationRecord
+    include ActiveStorage::Downloading
+
     belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
 
     validates :kind, presence: true
-    validates :file_name, presence: true
+    validates :original, presence: true
     validate :content_validator
+
+    # These 2 are added by teh lib/
+    # has_one_attached :original
+    # has_one_attached :result
 
     state_machine :state, initial: :new do
       state :importing
@@ -41,7 +47,7 @@ module Importo
     end
 
     def content_validator
-      errors.add(:file_name, I18n.t('import.errors.structure_invalid', invalid_headers: importer.invalid_header_names.join(', '))) unless importer.structure_valid?
+      errors.add(:original, I18n.t('import.errors.structure_invalid', invalid_headers: importer.invalid_header_names.join(', '))) unless importer.structure_valid?
     end
 
     def importer

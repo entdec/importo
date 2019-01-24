@@ -20,7 +20,8 @@ module Importo
       end
       @import = Import.new(import_params.merge(locale: I18n.locale, importo_ownable: Importo.config.current_import_owner))
       if @import.valid? && @import.schedule!
-        redirect_to new_import_url, notice: t('.flash.success', id: @import.id)
+        flash[:notice] = t('.flash.success', id: @import.id)
+        redirect_to action: :index
       else
         flash[:error] = t('.flash.error')
         render :new
@@ -38,14 +39,7 @@ module Importo
     private
 
     def import_params
-      return @import_params if @import_params
-      return if params[:import][:file_name].blank?
-      tmp_file = params[:import][:file_name].path if params[:import][:file_name]
-      uploaded_file = "#{Rails.root}/tmp/import/#{SecureRandom.hex}.#{tmp_file.split('.').last}"
-      FileUtils.mkdir_p "#{Rails.root}/tmp/import"
-      FileUtils.cp tmp_file, uploaded_file
-      params[:import][:file_name] = uploaded_file
-      @import_params = params.require(:import).permit(:file_name, :kind)
+      params.require(:import).permit(:original, :kind)
     end
   end
 end
