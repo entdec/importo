@@ -32,8 +32,10 @@ def simple_sheet(ary)
     sheet.add_row a
   end
 
-  Tempfile.open(%w[simple_sheet .xlsx]) do |f|
-    f.write(xls.to_stream.read)
-    f
-  end
+  # Tempfile.open(%w[simple_sheet .xlsx]) do |f|
+  #   f.write(xls.to_stream.read)
+  #   f
+  # end
+
+  xls.to_stream
 end

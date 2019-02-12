@@ -16,7 +16,7 @@ module Importo
 
       return unless import.original.attached?
       @blob = import.original
-      @original = Tempfile.new([ "ActiveStorage", import.original.filename.extension_with_delimiter])
+      @original = Tempfile.new([ 'ActiveStorage', import.original.filename.extension_with_delimiter])
       @original.binmode
       download_blob_to @original
       @original.flush

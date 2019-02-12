@@ -28,7 +28,9 @@ end
 module Importo
   class ImportTest < ActiveSupport::TestCase
     test 'imports an excel file' do
-      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[id name description], %w[aid atest atest-description]]).path)
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
+      import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]), filename: "simple_sheet.xlsx")
+      assert import.save, import.errors.messages
       import.schedule
       assert_equal 'scheduled', import.state
       import.import
@@ -42,7 +44,9 @@ module Importo
     end
 
     test 'imports an excel file with no headers' do
-      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'no_header_account', file_name: simple_sheet([%w[aid atest atest-description], %w[bid btest btest-description]]).path)
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'no_header_account')
+      import.original.attach(io: simple_sheet([%w[aid atest atest-description], %w[bid btest btest-description]]), filename: "simple_sheet.xlsx")
+      assert import.save
       import.schedule
       assert_equal 'scheduled', import.state
       import.import
@@ -56,13 +60,17 @@ module Importo
     end
 
     test 'finds the correct header row when it is the first row' do
-      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[id name description], %w[aid atest atest-description]]).path)
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
+      import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]), filename: "simple_sheet.xlsx")
+      assert import.save
       importer = import.importer
       assert_equal 1, importer.send(:header_row)
     end
 
     test 'finds the correct header row when there are random rows in front' do
-      import = Import.create(importo_ownable: Account.create(name: 'test'), kind: 'account', file_name: simple_sheet([%w[], %w[a b c], %w[id name description], %w[aid atest atest-description]]).path)
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
+      import.original.attach(io: simple_sheet([%w[], %w[a b c], %w[id name description], %w[aid atest atest-description]]), filename: "simple_sheet.xlsx")
+      assert import.save
       importer = import.importer
       assert_equal 3, importer.send(:header_row)
     end
