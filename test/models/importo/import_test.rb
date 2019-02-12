@@ -62,7 +62,7 @@ module Importo
     test 'finds the correct header row when it is the first row' do
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
       import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]), filename: "simple_sheet.xlsx")
-      assert import.save
+      assert import.save, import.errors.messages
       importer = import.importer
       assert_equal 1, importer.send(:header_row)
     end
@@ -70,7 +70,7 @@ module Importo
     test 'finds the correct header row when there are random rows in front' do
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
       import.original.attach(io: simple_sheet([%w[], %w[a b c], %w[id name description], %w[aid atest atest-description]]), filename: "simple_sheet.xlsx")
-      assert import.save
+      assert import.save, import.errors.messages
       importer = import.importer
       assert_equal 3, importer.send(:header_row)
     end
