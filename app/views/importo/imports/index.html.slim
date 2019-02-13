@@ -13,7 +13,7 @@ table.table
         - if import.original.attached?
           td= link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment"))
         - else
-          td= import.file_name.split('/').last
+          td= import.file_name.to_s.split('/').last
         td= l(import.created_at.in_time_zone(Time.zone), format: :short).to_s
         td= import.state
         td= import.result_message
