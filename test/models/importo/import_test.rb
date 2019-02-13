@@ -2,6 +2,17 @@
 
 require 'test_helper'
 
+class TranslatedAccountImporter < Importo::BaseImporter
+  includes_header true
+  allow_duplicates false
+
+  model Account
+
+  column 'id', 'id', attribute: 'id'
+  column 'name', 'name', attribute: 'name'
+  column 'description', 'description', attribute: 'description'
+end
+
 class AccountImporter < Importo::BaseImporter
   includes_header true
   allow_duplicates false
@@ -29,7 +40,7 @@ module Importo
   class ImportTest < ActiveSupport::TestCase
     test 'imports an excel file' do
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
-      import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]), filename: "simple_sheet.xlsx")
+      import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
       import.schedule
       assert_equal 'scheduled', import.state
@@ -45,7 +56,7 @@ module Importo
 
     test 'imports an excel file with no headers' do
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'no_header_account')
-      import.original.attach(io: simple_sheet([%w[aid atest atest-description], %w[bid btest btest-description]]), filename: "simple_sheet.xlsx")
+      import.original.attach(io: simple_sheet([%w[aid atest atest-description], %w[bid btest btest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save
       import.schedule
       assert_equal 'scheduled', import.state
@@ -61,7 +72,7 @@ module Importo
 
     test 'finds the correct header row when it is the first row' do
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
-      import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]), filename: "simple_sheet.xlsx")
+      import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
       importer = import.importer
       assert_equal 1, importer.send(:header_row)
@@ -69,7 +80,23 @@ module Importo
 
     test 'finds the correct header row when there are random rows in front' do
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
-      import.original.attach(io: simple_sheet([%w[], %w[a b c], %w[id name description], %w[aid atest atest-description]]), filename: "simple_sheet.xlsx")
+      import.original.attach(io: simple_sheet([%w[], %w[a b c], %w[id name description], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
+      assert import.save, import.errors.messages
+      importer = import.importer
+      assert_equal 3, importer.send(:header_row)
+    end
+
+    test 'finds the correct translated header row with default language (en)' do
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'translated_account')
+      import.original.attach(io: simple_sheet([%w[], %w[a b c], ['Record ID', 'Name', 'Description'], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
+      assert import.save, import.errors.messages
+      importer = import.importer
+      assert_equal 3, importer.send(:header_row)
+    end
+
+    test 'finds the correct translated header row with nl language' do
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'translated_account', locale: 'nl')
+      import.original.attach(io: simple_sheet([%w[], %w[a b c], ['Record ID', 'Naam', 'Omschrijving'], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
       importer = import.importer
       assert_equal 3, importer.send(:header_row)

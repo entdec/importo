@@ -3,6 +3,7 @@
 require 'axlsx'
 require 'roo'
 require 'roo-xls'
+require 'simple_form'
 require 'slim'
 require 'state_machines-activerecord'
 

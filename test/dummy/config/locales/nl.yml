@@ -1,7 +1,7 @@
-en:
+nl:
   importers:
     translated_account_importer:
       column:
         id: Record ID
-        name: Name
-        description: Description
+        name: Naam
+        description: Omschrijving
