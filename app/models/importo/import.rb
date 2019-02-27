@@ -35,6 +35,7 @@ module Importo
       event :import do
         transition new: :importing
         transition scheduled: :importing
+        transition failed: :importing
       end
 
       event :complete do

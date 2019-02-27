@@ -13,6 +13,9 @@ module Importo
       imprt.import!
       # Actually start the import, this can not be started in after_transition any => :importing because of nested transaction horribleness.
       imprt.importer.import!
+    rescue StandardError => e
+      import&.failed!
+      raise
     end
   end
 end
