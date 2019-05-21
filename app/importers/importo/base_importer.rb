@@ -90,6 +90,8 @@ module Importo
       results = loop_data_rows do |attributes, index|
         process_data_row(attributes, index)
       end
+      @import.result.attach(io: results_file, filename: 'results.xlsx', content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
       @import.result_message = "Imported #{results.compact.count} of #{results.count} rows, starting from row #{data_start_row}"
       @import.complete!
     rescue StandardError => e

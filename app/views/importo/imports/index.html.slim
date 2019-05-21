@@ -3,6 +3,7 @@ table.table
     tr
       th Kind
       th File name
+      th Result
       th Date
       th State
       th Result
@@ -14,6 +15,10 @@ table.table
           td= link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment"))
         - else
           td= import.file_name.to_s.split('/').last
+        - if import.result.attached?
+          td= link_to(import.result.filename, main_app.rails_blob_path(import.result, disposition: "attachment"))
+        - else
+          td -
         td= l(import.created_at.in_time_zone(Time.zone), format: :short).to_s
         td= import.state
         td= import.result_message
