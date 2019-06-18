@@ -42,7 +42,7 @@ module Importo
         transition importing: :completed
       end
 
-      event :failure do
+      event :fail do
         transition importing: :failed
       end
     end
