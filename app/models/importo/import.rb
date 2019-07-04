@@ -12,9 +12,12 @@ module Importo
     validates :original, presence: true
     validate :content_validator
 
-    # These 2 are added by teh lib/
-    # has_one_attached :original
-    # has_one_attached :result
+    begin
+      has_one_attached :original
+      has_one_attached :result
+    rescue NoMethodError => e
+      # Weird loading sequence error, is fixed by the lib/importo/helpers
+    end
 
     state_machine :state, initial: :new do
       state :importing

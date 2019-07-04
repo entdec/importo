@@ -11,10 +11,9 @@ module Importo
 
     def initialize(imprt = nil)
       @import = imprt
-      return unless import
-      I18n.locale = import.locale
+      return unless import&.original&.attached?
 
-      return unless import.original.attached?
+      I18n.locale = import.locale
       @blob = import.original
       @original = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
       @original.binmode
@@ -367,12 +366,11 @@ module Importo
     end
 
     def results(index)
-      [result(index, 'state'), result(index, 'id'), result(index, 'message'), result(index, 'errors')]
+      [result(index, :state), result(index, :id), result(index, :message), result(index, :errors)]
     end
 
     def result(index, field)
-      (@import.results.find { |result| result['row'] == index } || {}).fetch(field, nil)
+      (@import.results.find { |result| result[:row] == index } || {}).fetch(field, nil)
     end
-
   end
 end
