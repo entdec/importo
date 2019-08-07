@@ -8,6 +8,7 @@ table.table
       th Date
       th State
       th Result
+      th &nbsp;
   tbody
     - @imports.each do |import|
       tr
@@ -23,3 +24,10 @@ table.table
         td= l(import.created_at.in_time_zone(Time.zone), format: :short).to_s
         td= import.state
         td= import.result_message
+        td
+          = link_to(import, method: :delete, data: { confirm: 'Are you sure? This will prevent duplicate imports from being detected.' })
+            i.fa.fa-trash
+          | &nbsp;
+          -  if import.can_revert?
+            = link_to(undo_import_path(import), method: :post, data: { confirm: 'Are you sure? This will undo this import.' })
+              i.fa.fa-undo

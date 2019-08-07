@@ -6,6 +6,7 @@ module ImporterDSL
   extend ActiveSupport::Concern
 
   included do
+    delegate :allow_revert?, to: :class
   end
 
   class_methods do
@@ -55,6 +56,10 @@ module ImporterDSL
       @allow_duplicates
     end
 
+    def allow_revert(allow)
+      @allow_revert = allow
+    end
+
     def includes_header(includes_header)
       @includes_header = includes_header if includes_header
       @includes_header
@@ -82,6 +87,14 @@ module ImporterDSL
     #
     def includes_header?
       @includes_header
+    end
+
+    ##
+    # Allow reverting the import
+    # by default the successfully created records will be destroyed, override this behaviour with the undo method
+    #
+    def allow_revert?
+      @allow_revert
     end
 
     ##

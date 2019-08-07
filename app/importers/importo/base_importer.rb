@@ -11,15 +11,20 @@ module Importo
 
     def initialize(imprt = nil)
       @import = imprt
+      I18n.locale = import.locale # Should we do this?? here??
+    end
+
+    def original
+      return @original if @original
       return unless import&.original&.attached?
 
-      I18n.locale = import.locale
       @blob = import.original
       @original = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
       @original.binmode
       download_blob_to @original
       @original.flush
       @original.rewind
+      @original
     end
 
     #
@@ -93,6 +98,31 @@ module Importo
 
       @import.result_message = "Imported #{results.compact.count} of #{results.count} rows, starting from row #{data_start_row}"
       @import.complete!
+    rescue StandardError => e
+      @import.result_message = "Exception: #{e.message}"
+      Rails.logger.error "Importo exception: #{e.message} backtrace #{e.backtrace.join(';')}"
+      @import.failure!
+    end
+
+    def revert!
+      revertable_results = import.results.select { |result| result['state'] == 'success' }
+
+      revertable_results.each do |revertable_result|
+        next unless revertable_result['state'] == 'success'
+
+        begin
+          undo(revertable_result['class'], revertable_result['id'], cells_from_row(revertable_result['row']))
+          revertable_result['state'] = 'reverted'
+          revertable_result.delete('message')
+          revertable_result.delete('errors')
+        rescue StandardError => e
+          result['message'] = "Not reverted: #{e.message}"
+        end
+      end
+
+      @import.result.attach(io: results_file, filename: 'results.xlsx', content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      @import.result_message += "\nReverted #{results.select{ |result| result['state'] == 'reverted' }.size} of #{revertable_results.size} rows"
+      @import.reverted!
     rescue StandardError => e
       @import.result_message = "Exception: #{e.message}"
       Rails.logger.error "Importo exception: #{e.message} backtrace #{e.backtrace.join(';')}"
@@ -299,12 +329,17 @@ module Importo
       end
     end
 
+    def undo(klass, id, _row)
+      klass.constantize.find(id).destroy
+    end
+
     def duplicate(row_hash, id)
       Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND id <> :id", id: id).first
     end
 
     def duplicate?(row_hash, id)
       return false if allow_duplicates? || row_hash['id'] == id
+
       duplicate(row_hash, id)
     end
 
@@ -343,15 +378,15 @@ module Importo
     end
 
     def spreadsheet
-      @spreadsheet ||= case File.extname(@original.path)
+      @spreadsheet ||= case File.extname(original.path)
                        when '.csv' then
-                         Roo::CSV.new(@original.path, csv_options: csv_options)
+                         Roo::CSV.new(original.path, csv_options: csv_options)
                        when '.xls' then
-                         Roo::Excel.new(@original.path)
+                         Roo::Excel.new(original.path)
                        when '.xlsx' then
-                         Roo::Excelx.new(@original.path)
+                         Roo::Excelx.new(original.path)
                        else
-                         raise "Unknown file type: #{@original.path.split('/').last}"
+                         raise "Unknown file type: #{original.path.split('/').last}"
                        end
     end
 

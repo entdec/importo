@@ -24,12 +24,14 @@ module Importo
       state :scheduled
       state :completed
       state :failed
+      state :reverted
 
       after_transition any => any do |imprt, transition|
         Importo.config.import_callback(imprt, transition.to_name)
       end
 
       after_transition any => :scheduled, do: :schedule_import
+      after_transition any => :reverting, do: :schedule_revert
 
       event :schedule do
         transition new: :scheduled
@@ -46,8 +48,20 @@ module Importo
       end
 
       event :failure do
-        transition importing: :failed
+        transition any => :failed
       end
+
+      event :revert do
+        transition completed: :reverting
+      end
+
+      event :revert do
+        transition reverting: :reverted
+      end
+    end
+
+    def can_revert?
+      importer.allow_revert? && super
     end
 
     def content_validator
@@ -62,6 +76,10 @@ module Importo
 
     def schedule_import
       ImportJob.perform_later(id)
+    end
+
+    def schedule_revert
+      RevertJob.perform_later(id)
     end
   end
 end

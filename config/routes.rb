@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 Importo::Engine.routes.draw do
-  get 'imports', to: 'imports#index', as: :imports_index
-  get 'imports/:kind/new', to: 'imports#new', as: :new_import
-  get 'imports/:kind/sample', to: 'imports#sample', as: :sample_import
-  post 'imports/:kind/create', to: 'imports#create', as: :imports
+  resources :imports, except: %i[new] do
+    member do
+      post :undo
+    end
+  end
+  get ':kind/new', to: 'imports#new', as: :new_import
+  get ':kind/sample', to: 'imports#sample', as: :sample_import
+  root to: 'imports#index'
 end
