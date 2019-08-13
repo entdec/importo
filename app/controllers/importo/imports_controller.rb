@@ -47,6 +47,10 @@ module Importo
       send_data Import.new(kind: params[:kind], locale: I18n.locale).importer.sample_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: 'sample.xlsx'
     end
 
+    def export
+      send_data Import.new(kind: params[:kind], locale: I18n.locale).importer.export_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: 'export.xlsx'
+    end
+
     def index
       @imports = Import.where(importo_ownable: Importo.config.current_import_owner).order(created_at: :desc).limit(50)
     end

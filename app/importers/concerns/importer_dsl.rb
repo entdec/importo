@@ -60,6 +60,10 @@ module ImporterDSL
       @allow_revert = allow
     end
 
+    def allow_export(allow)
+      @allow_export = allow
+    end
+
     def includes_header(includes_header)
       @includes_header = includes_header if includes_header
       @includes_header
@@ -95,6 +99,13 @@ module ImporterDSL
     #
     def allow_revert?
       @allow_revert
+    end
+
+    ##
+    # Allow exporting data
+    #
+    def allow_export?
+      @allow_export
     end
 
     ##

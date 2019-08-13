@@ -15,7 +15,7 @@ module Importo
     begin
       has_one_attached :original
       has_one_attached :result
-    rescue NoMethodError => e
+    rescue NoMethodError
       # Weird loading sequence error, is fixed by the lib/importo/helpers
     end
 
@@ -62,6 +62,10 @@ module Importo
 
     def can_revert?
       importer.allow_revert? && super
+    end
+
+    def allow_export?
+      importer.class.allow_export?
     end
 
     def content_validator

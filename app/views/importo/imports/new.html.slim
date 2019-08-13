@@ -1,7 +1,10 @@
-p = t('.explanation_html', sample_path: sample_import_path(kind: @import.kind))
+= ui_card :import
+  p= pt('.explanation_html', name: @import.importer.class.friendly_name, sample_path: sample_import_path(kind: @import.kind))
+  - if @import.allow_export?
+    p= pt('.export_html', export_path: export_path(kind: @import.kind))
 
-= simple_form_for(@import) do |f|
-  = f.input :kind, as: :hidden
-  = f.input :original, as: :file
-
-  = f.button :button, t('.import_button'), name: 'commit', value: 'import', class: 'btn-primary', data: { disable_with: t('.import_button') }
+  = simple_form_for(@import) do |f|
+    = f.input :kind, as: :hidden
+    = f.input :original, as: :file
+    .actions
+      = f.button :button, pt('.import_button'), name: 'commit', value: 'import', class: 'btn-primary', data: { disable_with: pt('.import_button') }
