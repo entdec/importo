@@ -35,7 +35,7 @@ module Importo
       populate(row)
     end
 
-    def failure(row, record, index, exception)
+    def failure(_row, _record, index, exception)
       Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
     end
 
@@ -96,7 +96,7 @@ module Importo
       end
       @import.result.attach(io: results_file, filename: 'results.xlsx', content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-      @import.result_message = "Imported #{results.compact.count} of #{results.count} rows, starting from row #{data_start_row}"
+      @import.result_message = I18n.t('importo.importers.result_message', nr: results.compact.count, of: results.count, start_row: data_start_row)
       @import.complete!
     rescue StandardError => e
       @import.result_message = "Exception: #{e.message}"
@@ -121,7 +121,7 @@ module Importo
       end
 
       @import.result.attach(io: results_file, filename: 'results.xlsx', content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-      @import.result_message += "\nReverted #{results.select{ |result| result['state'] == 'reverted' }.size} of #{revertable_results.size} rows"
+      @import.result_message += "\nReverted #{results.select { |result| result['state'] == 'reverted' }.size} of #{revertable_results.size} rows"
       @import.reverted!
     rescue StandardError => e
       @import.result_message = "Exception: #{e.message}"

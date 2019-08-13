@@ -24,3 +24,5 @@ en:
           success: 'Import scheduled with id %{id}, you will get an email with the results.'
     errors:
       structure_invalid: 'The structure is invalid, these are the invalid headers: %{invalid_headers}'
+    importers:
+      result_message: "Successfully imported %{nr} of %{of} rows"

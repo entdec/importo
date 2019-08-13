@@ -24,3 +24,5 @@ nl:
           success: 'Import geplanned met id %{id}, je krijgt een email met de resultaten.'
     errors:
       structure_invalid: 'The structuur is ongeldig, dit zijn de ongeldige headers: %{invalid_headers}'
+    importers:
+      result_message: "%{nr} van %{of} rijen succesvol geimporteerd"
