@@ -46,7 +46,7 @@ module Exportable
     xls = Axlsx::Package.new
     xls.use_shared_strings = true
     workbook = xls.workbook
-    sheet = workbook.add_worksheet(name: model.name.pluralize)
+    sheet = workbook.add_worksheet(name: friendly_name&.pluralize || model.name.demodulize.pluralize)
     workbook.styles do |style|
       introduction_style = style.add_style(bg_color: 'E2EEDA')
       header_style = style.add_style(b: true, bg_color: 'A8D08E', border: { style: :thin, color: '000000' })

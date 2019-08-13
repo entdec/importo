@@ -89,7 +89,7 @@ module Original
   end
 
   def duplicate(row_hash, id)
-    Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND id <> :id", id: id).first
+    Importo::Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND id <> :id", id: id).first
   end
 
   def duplicate?(row_hash, id)
