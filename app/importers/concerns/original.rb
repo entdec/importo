@@ -7,20 +7,24 @@ module Original
   extend ActiveSupport::Concern
 
   def original
-    return @original if @original
-    return unless import&.original&.attached?
+    if import.respond_to?(:attachment_changes) && import.attachment_changes['original']
+      @original ||= import.attachment_changes['original']&.attachable
+    else
+      return @original if @original
+      return unless import&.original&.attached?
 
-    @blob = import.original
-    @original = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
-    @original.binmode
-    download_blob_to @original
-    @original.flush
-    @original.rewind
-    @original
+      @original = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
+      @original.binmode
+      download_blob_to @original
+      @original.flush
+      @original.rewind
+      @original
+    end
   end
 
   def structure_valid?
     return true if !includes_header? || ignore_header?
+
     invalid_header_names.count.zero?
   end
 

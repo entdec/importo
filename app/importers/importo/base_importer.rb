@@ -8,7 +8,7 @@ module Importo
     include Revertable
     include Original
     include ResultFeedback
-    include ImporterDSL
+    include ImporterDsl
     include ActiveStorage::Downloading
 
     delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, :t, to: :class

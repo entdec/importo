@@ -2,7 +2,7 @@
 
 require 'active_support/concern'
 
-module ImporterDSL
+module ImporterDsl
   extend ActiveSupport::Concern
 
   included do
