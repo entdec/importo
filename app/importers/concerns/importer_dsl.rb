@@ -6,7 +6,7 @@ module ImporterDsl
   extend ActiveSupport::Concern
 
   included do
-    delegate :allow_revert?, to: :class
+    delegate :allow_revert?, :overridable_columns, to: :class
   end
 
   class_methods do
@@ -113,6 +113,10 @@ module ImporterDsl
     #
     def ignore_header?
       @ignore_header
+    end
+
+    def overridable_columns
+      columns.select { |_name, column| column.overridable? }&.map(&:last)
     end
   end
 end

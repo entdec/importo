@@ -8,6 +8,7 @@ module Importo
 
     def perform(import_id)
       sleep 1
+
       imprt = Import.find(import_id)
       # Set the state of the object.
       imprt.import!

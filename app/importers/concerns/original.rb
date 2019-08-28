@@ -11,11 +11,11 @@ module Original
       @original ||= import.attachment_changes['original']&.attachable
     else
       return @original if @original
-      return unless import&.original&.attached?
+      return unless import&.original&.attachment
 
       @original = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
       @original.binmode
-      download_blob_to @original
+      import.original.download { |block| @original.write(block) }
       @original.flush
       @original.rewind
       @original
@@ -120,13 +120,12 @@ module Original
     ('A'..'ZZ').to_a[number]
   end
 
-
   def attribute_names
     return columns.keys if !includes_header? || ignore_header?
 
     translated_header_names = cells_from_row(header_row)
     @header_names = translated_header_names.map do |name|
-      col_for(name).first
+      col_for(name)&.first
     end
   end
 

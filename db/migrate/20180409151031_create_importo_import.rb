@@ -3,6 +3,8 @@ class CreateImportoImport < ActiveRecord::Migration[5.1]
     enable_extension 'uuid-ossp'
     enable_extension 'pgcrypto'
 
+    return if table_exists?(:importo_imports)
+
     create_table :importo_imports, id: :uuid do |t|
       t.string  :importo_ownable_type, null: false
       t.uuid    :importo_ownable_id, null: false

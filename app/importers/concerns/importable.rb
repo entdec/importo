@@ -14,7 +14,6 @@ module Importable
     populate(row)
   end
 
-
   #
   # Assists in pre-populating the record for you
   # It wil try and find the record by id, or initialize a new record with it's attributes set based on the mapping from columns
@@ -38,13 +37,22 @@ module Importable
       attributes = {}
       attr = col.options[:attribute]
 
-      value = row[k]
+      row[k] = import.column_overrides[col.attribute] if import.column_overrides[col.attribute]
+
+      if col.collection
+        # see if the value is part of the collection  of (name, id) pairs, error if not.
+        value = col.collection.find { |item| item.last == row[k] || item.first == row[k] }&.last
+        raise StandardError, "#{row[k]} is not a valid value for #{col.name}" if value.nil? && row[k].present?
+      else
+        value ||= row[k]
+      end
+
       if value.present? && col.proc
         proc = col.proc
         proc_result = instance_exec value, record, row, &proc
         value = proc_result if proc_result
       end
-      value || col.options[:default]
+      value ||= col.options[:default]
 
       attributes = set_attribute(attributes, attr, value) if value.present?
 

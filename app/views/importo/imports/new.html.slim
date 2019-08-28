@@ -4,6 +4,13 @@
     p= pt('.export_html', export_path: export_path(kind: @import.kind))
 
   = simple_form_for(@import) do |f|
+    - @import.importer.overridable_columns.each do |column|
+      = f.simple_fields_for :column_overrides do |fff|
+        - if column.collection
+          = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: true, required: false
+        - else
+          =  fff.input column.attribute, label: column.name, required: false
+
     = f.input :kind, as: :hidden
     = f.input :original, as: :file
     .actions

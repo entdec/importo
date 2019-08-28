@@ -58,7 +58,7 @@ module Importo
     private
 
     def import_params
-      params.require(:import).permit(:original, :kind)
+      params.require(:import).permit(:original, :kind, :column_overrides, column_overrides: params.dig(:import, :column_overrides)&.keys)
     end
   end
 end
