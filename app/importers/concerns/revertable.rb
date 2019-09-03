@@ -31,7 +31,6 @@ module Revertable
     @import.failure!
   end
 
-
   private
 
   def undo(klass, id, _row)

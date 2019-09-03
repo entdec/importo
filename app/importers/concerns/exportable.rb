@@ -14,7 +14,7 @@ module Exportable
   end
 
   def sample_data
-    [columns.map { |_, c| c.options[:example] || '' }]
+    [export_columns.map { |_, c| c.options[:example] || '' }]
   end
 
   #
@@ -37,7 +37,7 @@ module Exportable
   end
 
   def export_row(record)
-    columns.map do |_, c|
+    export_columns.map do |_, c|
       c.options[:attribute] ? record.attributes[c.options[:attribute].to_s] : ''
     end
   end
@@ -55,14 +55,14 @@ module Exportable
       # Introduction
       introduction.each_with_index do |intro, i|
         text = intro.is_a?(Symbol) ? I18n.t(intro, scope: [:importers, self.class.name.underscore.to_s, :introduction]) : intro
-        sheet.add_row [text], style: [introduction_style] * columns.count
-        sheet.merge_cells "A#{i + 1}:#{nr_to_col(columns.count - 1)}#{i + 1}"
+        sheet.add_row [text], style: [introduction_style] * export_columns.count
+        sheet.merge_cells "A#{i + 1}:#{nr_to_col(export_columns.count - 1)}#{i + 1}"
       end
 
       # Header row
-      sheet.add_row columns.values.map(&:name), style: columns.map { |_, c| c.options[:required] ? header_required_style : header_style }
+      sheet.add_row export_columns.values.map(&:name), style: export_columns.map { |_, c| c.options[:required] ? header_required_style : header_style }
 
-      columns.each.with_index do |f, i|
+      export_columns.each.with_index do |f, i|
         field = f.last
         sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count + 1}", author: '', text: field.hint, visible: false if field.hint.present?
       end
@@ -70,7 +70,7 @@ module Exportable
       number = workbook.styles.add_style format_code: '#'
       text = workbook.styles.add_style format_code: '@'
 
-      styles = columns.map { |_, c| c.options[:example].is_a?(Numeric) ? number : text }
+      styles = export_columns.map { |_, c| c.options[:example].is_a?(Numeric) ? number : text }
 
       # Examples
       data_rows.each do |data|
@@ -99,7 +99,7 @@ module Exportable
 
       # Header row
       sheet.add_row [I18n.t('importo.sheet.explanation.column'), I18n.t('importo.sheet.explanation.explanation')], style: [header_style] * 2
-      columns.each do |_, c|
+      export_columns.each do |_, c|
         styles = [c.options[:required] ? required_style : column_style, wrap_style]
         sheet.add_row [c.name, c.explanation], style: styles
       end
@@ -109,5 +109,9 @@ module Exportable
     sheet.column_info[1].width = 150
 
     xls.to_stream
+  end
+
+  def export_columns
+    @export_columns ||= columns.reject { |_, column| column.options[:hidden] }
   end
 end
