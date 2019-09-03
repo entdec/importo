@@ -16,7 +16,7 @@ module Importo
 
     def initialize(imprt = nil)
       @import = imprt
-      I18n.locale = import.locale # Should we do this?? here??
+      I18n.locale = import.locale if import&.locale # Should we do this?? here??
     end
 
     class << self
