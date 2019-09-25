@@ -17,6 +17,7 @@ task :release do
   puts "Updated version to #{Importo::VERSION}"
 
   `git commit lib/importo/version.rb -m "Version #{Importo::VERSION}"`
+  `git push`
   `git tag #{Importo::VERSION}`
   `git push --tags`
 end
