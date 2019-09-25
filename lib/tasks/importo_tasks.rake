@@ -1,5 +1,22 @@
-# frozen_string_literal: true
-# desc "Explaining what the task does"
-# task :importo do
-#   # Task goes here
-# end
+desc 'Release a new version'
+task :release do
+  version_file = './lib/importo/version.rb'
+  File.open(version_file, 'w') do |file|
+    file.puts <<~EOVERSION
+      # frozen_string_literal: true
+
+      module Importo
+        VERSION = '#{Importo::VERSION.split('.').map(&:to_i).tap { |parts| parts[2] += 1 }.join('.')}'
+      end
+    EOVERSION
+  end
+  module Importo
+    remove_const :VERSION
+  end
+  load version_file
+  puts "Updated version to #{Importo::VERSION}"
+
+  `git commit lib/importo/version.rb -m "Version #{Importo::VERSION}"`
+  `git tag #{Importo::VERSION}`
+  `git push --tags`
+end

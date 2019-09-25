@@ -1,33 +1,33 @@
-h3= t('.title')
-table.table
-  thead
-    tr
-      th Kind
-      th File name
-      th Result
-      th Date
-      th State
-      th Result
-      th &nbsp;
-  tbody
-    - @imports.each do |import|
+= ui_card :imports, title: t('.title'), padding: false
+  table.table
+    thead
       tr
-        td= import.kind
-        - if import.original.attached?
-          td= link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment"))
-        - else
-          td= import.file_name.to_s.split('/').last
-        - if import.result.attached?
-          td= link_to(import.result.filename, main_app.rails_blob_path(import.result, disposition: "attachment"))
-        - else
-          td -
-        td= l(import.created_at.in_time_zone(Time.zone), format: :short).to_s
-        td= import.state
-        td= import.result_message
-        td
-          = link_to(import, method: :delete, data: { confirm: 'Are you sure? This will prevent duplicate imports from being detected.' })
-            i.fa.fa-trash
-          | &nbsp;
-          -  if import.can_revert?
-            = link_to(undo_import_path(import), method: :post, data: { confirm: 'Are you sure? This will undo this import.' })
-              i.fa.fa-undo
+        th Kind
+        th File name
+        th Result
+        th Date
+        th State
+        th Result
+        th &nbsp;
+    tbody
+      - @imports.each do |import|
+        tr
+          td= import.kind
+          - if import.original.attached?
+            td= link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment"))
+          - else
+            td= import.file_name.to_s.split('/').last
+          - if import.result.attached?
+            td= link_to(import.result.filename, main_app.rails_blob_path(import.result, disposition: "attachment"))
+          - else
+            td -
+          td= l(import.created_at.in_time_zone(Time.zone), format: :short).to_s
+          td= import.state
+          td= import.result_message
+          td
+            = link_to(import, method: :delete, data: { confirm: 'Are you sure? This will prevent duplicate imports from being detected.' })
+              i.fa.fa-trash
+            | &nbsp;
+            -  if import.can_revert?
+              = link_to(undo_import_path(import), method: :post, data: { confirm: 'Are you sure? This will undo this import.' })
+                i.fa.fa-undo
