@@ -39,6 +39,8 @@ module Importo
 
     def destroy
       @import = Import.where(importo_ownable: Importo.config.current_import_owner).find(params[:id])
+      redirect_to(action: :index, alert: 'Not allowed') && return unless Importo.config.admin_can_destroy(@import)
+
       @import.destroy
       redirect_to action: :index
     end
@@ -52,7 +54,7 @@ module Importo
     end
 
     def index
-      @imports = Import.where(importo_ownable: Importo.config.current_import_owner).order(created_at: :desc).limit(50)
+      @imports = Importo.config.admin_visible_imports.order(created_at: :desc).limit(50)
     end
 
     private

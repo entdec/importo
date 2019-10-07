@@ -9,6 +9,9 @@ module Importo
     attr_writer :logger
     attr_writer :current_import_owner
     attr_writer :import_callbacks
+    attr_writer :admin_visible_imports
+    attr_writer :admin_can_destroy
+    attr_writer :admin_extra_links
 
     def initialize
       @logger               = Logger.new(STDOUT)
@@ -24,6 +27,12 @@ module Importo
         end
       }
       @queue_name = :import
+
+      @admin_visible_imports = -> { Importo::Import.where(importo_ownable: current_import_owner) }
+      @admin_can_destroy = ->(_import) { false }
+
+      # Extra links relevant for this import: { link_name: { icon: 'far fa-..', url: '...' } }
+      @admin_extra_links = ->(_import) { }
     end
 
     # Config: logger [Object].
@@ -38,6 +47,18 @@ module Importo
 
     def import_callback(import, state)
       instance_exec(import, &@import_callbacks[state]) if @import_callbacks[state]
+    end
+
+    def admin_visible_imports
+      instance_exec(&@admin_visible_imports) if @admin_visible_imports
+    end
+
+    def admin_can_destroy(import)
+      instance_exec(import, &@admin_can_destroy) if @admin_can_destroy
+    end
+
+    def admin_extra_links(import)
+      instance_exec(import, &@admin_extra_links) if @admin_extra_links
     end
   end
 end
