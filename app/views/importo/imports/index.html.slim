@@ -16,16 +16,23 @@
           td= import.importo_ownable.name if import.importo_ownable.respond_to?(:name)
           td= import.kind
           - if import.original.attached?
-            td= link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment"))
+            td
+              = link_to(main_app.rails_blob_path(import.original, disposition: "attachment"))
+                i.far.fa-upload
+              | &nbsp;
+              span= import.original.filename
           - else
             td= import.file_name.to_s.split('/').last
           td= import.state
-          td= import.result_message
-          td
-            - if import.result.attached?
+          - if import.result.attached?
+            td
               = link_to(main_app.rails_blob_path(import.result, disposition: "attachment"), title: 'Result')
                 i.far.fa-download
               | &nbsp;
+              span= import.result_message
+          - else
+            td= import.result_message
+          td
             - if extra_links = Importo.config.admin_extra_links(import)
               - extra_links.each do |name, details|
                 = link_to(details[:url], title: name.to_s.humanize)
@@ -36,6 +43,6 @@
                 i.fa.fa-undo
               | &nbsp;
             - if Importo.config.admin_can_destroy(import)
-              = link_to(import, method: :delete, data: { confirm: 'Are you sure? This will prevent duplicate imports from being detected.' })
+              = link_to(import, method: :delete, class: 'float-right', data: { confirm: 'Are you sure? This will prevent duplicate imports from being detected.' })
                 i.fa.fa-trash
               | &nbsp;
