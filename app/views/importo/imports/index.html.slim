@@ -30,7 +30,7 @@
               - extra_links.each do |name, details|
                 = link_to(details[:url], title: name.to_s.humanize)
                   i class=details[:icon]
-              | &nbsp;
+                | &nbsp;
             -  if import.can_revert?
               = link_to(undo_import_path(import), method: :post, data: { confirm: 'Are you sure? This will undo this import.' })
                 i.fa.fa-undo
