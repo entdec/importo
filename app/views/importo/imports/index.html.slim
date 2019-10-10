@@ -9,6 +9,7 @@
         th State
         th Results
         th &nbsp;
+        th &nbsp;
     tbody
       - @imports.each do |import|
         tr
@@ -19,7 +20,6 @@
             td
               = link_to(main_app.rails_blob_path(import.original, disposition: "attachment"))
                 i.far.fa-upload
-              | &nbsp;
               span= import.original.filename
           - else
             td= import.file_name.to_s.split('/').last
@@ -28,16 +28,14 @@
             td
               = link_to(main_app.rails_blob_path(import.result, disposition: "attachment"), title: 'Result')
                 i.far.fa-download
-              | &nbsp;
               span= import.result_message
           - else
             td= import.result_message
           td
             - if extra_links = Importo.config.admin_extra_links(import)
-              - extra_links.each do |name, details|
-                = link_to(details[:url], title: name.to_s.humanize)
-                  i class=details[:icon]
-                | &nbsp;
+              - extra_links.each do |name, link|
+                = link_to(link[:text], link[:url], title: link[:title], target: '_blank', class: link[:icon])
+          td
             -  if import.can_revert?
               = link_to(undo_import_path(import), method: :post, data: { confirm: 'Are you sure? This will undo this import.' })
                 i.fa.fa-undo
