@@ -20,6 +20,8 @@ module Importo
     end
 
     state_machine :state, initial: :new do
+      audit_trail class: ResourceStateTransition, as: :resource
+
       state :importing
       state :scheduled
       state :completed
