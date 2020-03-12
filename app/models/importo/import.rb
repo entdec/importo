@@ -20,7 +20,7 @@ module Importo
     end
 
     state_machine :state, initial: :new do
-      audit_trail class: ResourceStateTransition, as: :resource
+      audit_trail class: ResourceStateTransition, as: :resource if "ResourceStateTransition".safe_constantize
 
       state :importing
       state :scheduled
