@@ -71,6 +71,13 @@ module Importable
   end
 
   #
+  # Any updates that have to be done after saving
+  #
+  def after_save(_record, _row)
+    # Implement optionally in child class to perform other updates
+  end
+
+  #
   # Does the actual import
   #
   def import!
@@ -111,6 +118,7 @@ module Importable
         record.validate!
         before_save(record, attributes)
         record.save!
+        after_save(record, attributes)
         duplicate_import = duplicate?(row_hash, record.id)
         raise Importo::DuplicateRowError if duplicate_import
         register_result(index, class: record.class.name, id: record.id, state: :success)
