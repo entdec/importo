@@ -2,6 +2,8 @@
 
 source 'https://rubygems.org'
 
+git_source(:entdec) { |repo_name| "git@code.entropydecelerator.com:#{repo_name}.git" }
+
 # Declare your gem's dependencies in importo.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
 # development dependencies will be added by default to the :development group.
@@ -16,3 +18,4 @@ gemspec
 # gem 'byebug', group: [:development, :test]
 
 gem 'rails', '~> 5.2.2'
+gem 'uikit', entdec: 'components/uikit', tag: '0.6.3'
