@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Importo
-  class Import < ApplicationRecord
+  class Import < Importo::ApplicationRecord
     include ActiveStorage::Downloading
 
     belongs_to :importo_ownable, polymorphic: true
