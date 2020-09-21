@@ -46,12 +46,7 @@ module Importo
       assert_equal 'scheduled', import.state
       import.import
 
-      assert_nothing_raised do
-        assert_difference -> { Account.count }, 1 do
-          import.importer.import!
-        end
-      end
-      assert_equal 'completed', import.reload.state
+      assert_import(import)
     end
 
     test 'imports an excel file with no headers' do
@@ -100,6 +95,62 @@ module Importo
       assert import.save, import.errors.messages
       importer = import.importer
       assert_equal 3, importer.send(:header_row)
+    end
+
+    test 'finds the correct translated header row with nl language while default locale is active (en)' do
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'translated_account')
+      import.original.attach(io: simple_sheet([%w[], %w[a b c], ['Record ID', 'Naam', 'Omschrijving'], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
+      assert import.save, import.errors.messages
+      importer = import.importer
+      assert_equal 3, importer.send(:header_row)
+    end
+
+    test 'imports an excel file with the headers in nl while the current locale is nl' do
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'translated_account', locale: 'nl')
+      import.original.attach(io: simple_sheet([%w[], %w[a b c], ['Record ID', 'Naam', 'Omschrijving'], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
+      assert import.save, import.errors.messages
+      import.schedule
+      assert_equal 'scheduled', import.state
+      import.import
+
+      assert_import(import)
+    end
+
+    test 'imports an excel file with the headers in nl while the current locale is en' do
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'translated_account')
+      import.original.attach(io: simple_sheet([%w[], %w[a b c], ['Record ID', 'Naam', 'Omschrijving'], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
+      assert import.save, import.errors.messages
+      import.schedule
+      assert_equal 'scheduled', import.state
+      import.import
+
+      assert_import(import)
+    end
+
+    test 'imports an excel file with the headers in en and nl while the current locale is en' do
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'translated_account')
+      import.original.attach(io: simple_sheet([%w[], %w[a b c], ['Record ID', 'Naam', 'Description'], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
+      assert import.save, import.errors.messages
+      import.schedule
+      assert_equal 'scheduled', import.state
+      import.import
+
+      assert_import(import)
+    end
+
+    private
+
+    def assert_import(import)
+      assert_nothing_raised do
+        assert_difference -> { Account.count }, 1 do
+          import.importer.import!
+        end
+      end
+
+      account = Account.find_by_name('atest')
+      refute_nil account
+      assert_equal 'atest-description', account.description
+      assert_equal 'completed', import.reload.state
     end
   end
 end

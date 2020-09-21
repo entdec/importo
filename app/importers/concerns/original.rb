@@ -33,9 +33,8 @@ module Original
   end
 
   def col_for(translated_name)
-    col = columns.detect do |k, v|
-      v.name == translated_name || k == translated_name
-    end
+    col = columns.detect { |k, v| v.name == translated_name || k == translated_name }
+    col ||= columns.detect { |k, v| v.allowed_names.include?(translated_name) }
     col
   end
 
@@ -76,7 +75,7 @@ module Original
   end
 
   def allowed_header_names
-    @allowed_header_names ||= columns.values.map(&:name) + headers_added_by_import
+    @allowed_header_names ||= columns.values.map(&:allowed_names).flatten + headers_added_by_import
   end
 
   def spreadsheet

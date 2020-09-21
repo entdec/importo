@@ -18,11 +18,18 @@ module Importo
     end
 
     def name
-      if options[:attribute]
-        I18n.t(".column.#{options[:attribute]}", scope: [:importers, options[:scope]], default: options[:attribute])
-      else
-        I18n.t(".column.#{@name}", scope: [:importers, options[:scope]], default: @name)
-      end
+      name = options[:attribute] || @name
+      I18n.t(".column.#{name}", scope: [:importers, options[:scope]], default: name)
+    end
+
+    def allowed_names
+      return @allowed_names if @allowed_names.present?
+
+      name = options[:attribute] || @name
+
+      @allowed_names = I18n.available_locales.map do |locale|
+        I18n.t(".column.#{name}", scope: [:importers, options[:scope]], locale: locale, default: name)
+      end.compact.uniq
     end
 
     def hint
