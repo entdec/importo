@@ -1,46 +1,46 @@
-= ui_card :imports, title: t('.title'), padding: false
-  table.table
-    thead
-      tr
-        th Date
-        th Owner
-        th Kind
-        th File name
-        th State
-        th Results
-        th &nbsp;
-        th &nbsp;
-    tbody
-      - @imports.each do |import|
-        tr
-          td= l(import.created_at.in_time_zone(Time.zone), format: :short).to_s
-          td= import.importo_ownable.name if import.importo_ownable.respond_to?(:name)
-          td= import.kind
-          - if import.original.attached?
-            td
-              = link_to(main_app.rails_blob_path(import.original, disposition: "attachment"))
-                i.far.fa-upload
-              span= import.original.filename
-          - else
-            td= import.file_name.to_s.split('/').last
-          td= import.state
-          - if import.result.attached?
-            td
-              = link_to(main_app.rails_blob_path(import.result, disposition: "attachment"), title: 'Result')
-                i.far.fa-download
-              span= import.result_message
-          - else
-            td= import.result_message
-          td
-            - if extra_links = Importo.config.admin_extra_links(import)
-              - extra_links.each do |name, link|
-                = link_to(link[:text], link[:url], title: link[:title], target: '_blank', class: link[:icon])
-          td
-            -  if import.can_revert?
-              = link_to(undo_import_path(import), method: :post, data: { confirm: 'Are you sure? This will undo this import.' })
-                i.fa.fa-undo
-              | &nbsp;
-            - if Importo.config.admin_can_destroy(import)
-              = link_to(import, method: :delete, class: 'float-right', data: { confirm: 'Are you sure? This will prevent duplicate imports from being detected.' })
-                i.fa.fa-trash
-              | &nbsp;
+= ui_table :importo_imports, title: t('.title')
+/ table.table
+/   thead
+/     tr
+/       th Date
+/       th Owner
+/       th Kind
+/       th File name
+/       th State
+/       th Results
+/       th &nbsp;
+/       th &nbsp;
+/   tbody
+/     - @imports.each do |import|
+/       tr
+/         td= l(import.created_at.in_time_zone(Time.zone), format: :short).to_s
+/         td= import.importo_ownable.name if import.importo_ownable.respond_to?(:name)
+/         td= import.kind
+/         - if import.original.attached?
+/           td
+/             = link_to(main_app.rails_blob_path(import.original, disposition: "attachment"))
+/               i.far.fa-upload
+/             span= import.original.filename
+/         - else
+/           td= import.file_name.to_s.split('/').last
+/         td= import.state
+/         - if import.result.attached?
+/           td
+/             = link_to(main_app.rails_blob_path(import.result, disposition: "attachment"), title: 'Result')
+/               i.far.fa-download
+/             span= import.result_message
+/         - else
+/           td= import.result_message
+/         td
+/           - if extra_links = Importo.config.admin_extra_links(import)
+/             - extra_links.each do |name, link|
+/               = link_to(link[:text], link[:url], title: link[:title], target: '_blank', class: link[:icon])
+/         td
+/           -  if import.can_revert?
+/             = link_to(undo_import_path(import), method: :post, data: { confirm: 'Are you sure? This will undo this import.' })
+/               i.fa.fa-undo
+/             | &nbsp;
+/           - if Importo.config.admin_can_destroy(import)
+/             = link_to(import, method: :delete, class: 'float-right', data: { confirm: 'Are you sure? This will prevent duplicate imports from being detected.' })
+/               i.fa.fa-trash
+/             | &nbsp;
