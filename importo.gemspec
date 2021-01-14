@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'state_machines-audit_trail', '~> 2'
   s.add_dependency 'uikit', '~> 0.1' # This is our own gem, you must add it to your project's Gemfile for this to work
 
+  s.add_development_dependency 'auxilium', '~> 0.2'
   s.add_development_dependency 'minitest', '~> 5.11'
   s.add_development_dependency 'minitest-reporters', '~> 1.1'
   s.add_development_dependency 'pg'

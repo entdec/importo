@@ -18,4 +18,6 @@ gemspec
 # gem 'byebug', group: [:development, :test]
 
 gem 'rails', '~> 5.2.2'
+
+gem 'auxilium', '~> 0.2', entdec: 'components/auxilium'
 gem 'uikit', entdec: 'components/uikit', tag: '0.6.3'
