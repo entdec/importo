@@ -6,7 +6,7 @@ require 'roo-xls'
 require 'simple_form'
 require 'slim'
 require 'state_machines-activerecord'
-require 'active_storage/downloading'
+# require 'active_storage/downloading'
 
 require_relative 'importo/engine'
 require_relative 'importo/acts_as_import_owner'

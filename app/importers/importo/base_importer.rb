@@ -9,7 +9,7 @@ module Importo
     include Original
     include ResultFeedback
     include ImporterDsl
-    include ActiveStorage::Downloading
+    # include ActiveStorage::Downloading
 
     delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?, :ignore_header?, :t, to: :class
     attr_reader :import, :blob

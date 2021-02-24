@@ -2,7 +2,7 @@
 
 module Importo
   class Import < Importo::ApplicationRecord
-    include ActiveStorage::Downloading
+    # include ActiveStorage::Downloading
 
     belongs_to :importo_ownable, polymorphic: true
 

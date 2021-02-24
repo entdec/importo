@@ -138,7 +138,7 @@ module Importable
   end
 
   def set_attribute(hash, path, value)
-    tmp_hash = path.split('.').reverse.inject(value) { |h, s| { s => h } }
+    tmp_hash = path.to_s.split('.').reverse.inject(value) { |h, s| { s => h } }
     hash.deep_merge(tmp_hash)
   end
 end
