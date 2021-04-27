@@ -19,5 +19,4 @@ gemspec
 
 gem 'rails', '~> 6.0.0'
 
-gem 'auxilium', '~> 0.2', entdec: 'components/auxilium'
-gem 'uikit', '~> 1.6', entdec: 'components/uikit'
+gem 'auxilium', '~> 3.0', entdec: 'components/auxilium'
