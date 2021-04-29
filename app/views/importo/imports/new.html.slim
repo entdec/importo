@@ -1,16 +1,17 @@
 = clg.simple_form_for(@import) do |f|
   = f.input :kind, as: :hidden
-  = clg.card title: :import do |card|
+  = clg.card title: t('.import.title') do |card|
     - card.action_buttons_for(f, continue: false)
-    p= pt('.explanation_html', name: @import.importer.class.friendly_name, sample_path: sample_import_path(kind: @import.kind))
-    - if @import.allow_export?
-      p= pt('.export_html', export_path: export_path(kind: @import.kind))
+    - clg.layout do |layout|
+      p= pt('.import.explanation_html', name: @import.importer.class.friendly_name, sample_path: sample_import_path(kind: @import.kind))
+      - if @import.allow_export?
+        p= pt('.import.export_html', export_path: export_path(kind: @import.kind))
 
-    - @import.importer.overridable_columns.each do |column|
-      = f.simple_fields_for :column_overrides do |fff|
-        - if column.collection
-          = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: true, required: false
-        - else
-          =  fff.input column.attribute, label: column.name, required: false
+      - @import.importer.overridable_columns.each do |column|
+        = f.simple_fields_for :column_overrides do |fff|
+          - if column.collection
+            = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: true, required: false
+          - else
+            =  fff.input column.attribute, label: column.name, required: false
 
-    = f.input :original, as: :file
+      = f.input :original, as: :file

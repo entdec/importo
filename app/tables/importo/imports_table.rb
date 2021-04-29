@@ -14,7 +14,7 @@ class Importo::ImportsTable < ActionTable::ActionTable
   column :actions, title: '', sortable: false do |import|
     content_tag(:span, class: 'btn-group btn-group-xs') do
       if import.can_revert?
-        concat link_to(content_tag(:i, nil, class: 'fa fa-undo'), undo_import_path(import), method: :post, data: { confirm: 'Are you sure? This will undo this import.' })
+        concat link_to(content_tag(:i, nil, class: 'fa fa-undo'), importo.undo_import_path(import), method: :post, data: { confirm: 'Are you sure? This will undo this import.' })
       end
       if Importo.config.admin_can_destroy(import)
         concat link_to(content_tag(:i, nil, class: 'fa fa-trash'), main_app.importo_path(import), method: :delete, class: 'float-right', data: { confirm: 'Are you sure? This will prevent duplicate imports from being detected.' })
