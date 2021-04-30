@@ -7,10 +7,20 @@ module Original
   extend ActiveSupport::Concern
 
   def original
+    return @original if @original && !@original.is_a?(Hash)
+
     if import.respond_to?(:attachment_changes) && import.attachment_changes['original']
       @original ||= import.attachment_changes['original']&.attachable
+
+      if @original.is_a?(Hash)
+        tempfile = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
+        tempfile.binmode
+        tempfile.write(@original[:io].read)
+        @original[:io].rewind
+        tempfile.rewind
+        @original = tempfile
+      end
     else
-      return @original if @original
       return unless import&.original&.attachment
 
       @original = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
@@ -18,8 +28,9 @@ module Original
       import.original.download { |block| @original.write(block) }
       @original.flush
       @original.rewind
-      @original
     end
+
+    @original
   end
 
   def structure_valid?
