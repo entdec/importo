@@ -4,11 +4,8 @@ require_dependency 'importo/application_controller'
 
 module Importo
   class ImportsController < ApplicationController
-    add_breadcrumb I18n.t('importo.breadcrumbs.imports') if defined? add_breadcrumb
-
     def new
       @import = Import.new(kind: params[:kind], locale: I18n.locale)
-      add_breadcrumb @import.importer.friendly_name if defined? add_breadcrumb
     end
 
     def create

@@ -11,8 +11,6 @@ en:
         name: Explanation
         column: Column
         explanation: Explanation
-    breadcrumbs:
-      imports: Imports
     imports:
       index:
         title: Import results

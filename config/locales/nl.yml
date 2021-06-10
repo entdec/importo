@@ -7,8 +7,6 @@ nl:
         name: Uitleg
         column: Kolom
         explanation: Uitleg
-    breadcrumbs:
-      imports: Imports
     imports:
       index:
         title: Import resultaten
