@@ -40,7 +40,11 @@ module ResultFeedback
       xls.to_stream
     end
 
-
+    def file_name(suffix = nil)
+      base = friendly_name || model.class.name
+      base = base.gsub(/[_\s-]/, '_').pluralize.downcase
+      "#{base}#{suffix.present? ? "_#{suffix}" : '' }.xlsx"
+    end
 
   private
 

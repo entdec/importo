@@ -86,7 +86,7 @@ module Importable
     results = loop_data_rows do |attributes, index|
       process_data_row(attributes, index)
     end
-    @import.result.attach(io: results_file, filename: 'results.xlsx', content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    @import.result.attach(io: results_file, filename: @import.importo.file_name('results'), content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
     @import.result_message = I18n.t('importo.importers.result_message', nr: results.compact.count, of: results.count, start_row: data_start_row)
     @import.complete!

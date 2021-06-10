@@ -43,11 +43,13 @@ module Importo
     end
 
     def sample
-      send_data Import.new(kind: params[:kind], locale: I18n.locale).importer.sample_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: 'sample.xlsx'
+      import = Import.new(kind: params[:kind], locale: I18n.locale)
+      send_data import.importer.sample_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: import.importer.file_name('sample')
     end
 
     def export
-      send_data Import.new(kind: params[:kind], locale: I18n.locale).importer.export_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: 'export.xlsx'
+      import = Import.new(kind: params[:kind], locale: I18n.locale)
+      send_data import.importer.export_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: import.importer.file_name('export')
     end
 
     def index
