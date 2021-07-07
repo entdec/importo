@@ -14,9 +14,9 @@ module Importable
   end
 
   def convert_values(row)
-    return row if @converted_values
+    return row if row.instance_variable_get('@importo_converted_values')
 
-    @converted_values = true
+    row.instance_variable_set('@importo_converted_values', true)
 
     cols_to_populate = columns.select do |_, v|
       v.options[:attribute].present?
