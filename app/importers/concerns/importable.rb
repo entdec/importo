@@ -1,4 +1,3 @@
-
 # frozen_string_literal: true
 
 require 'active_support/concern'
@@ -14,27 +13,16 @@ module Importable
     populate(row)
   end
 
-  #
-  # Assists in pre-populating the record for you
-  # It wil try and find the record by id, or initialize a new record with it's attributes set based on the mapping from columns
-  #
-  def populate(row, record = nil)
-    raise 'No attributes set for columns' unless columns.any? { |_, v| v.options[:attribute].present? }
+  def convert_values(row)
+    return row if @converted_values
 
-    result = if record
-               record
-             else
-               raise 'No model set' unless model
-
-               model.find_or_initialize_by(id: row['id'])
-             end
+    @converted_values = true
 
     cols_to_populate = columns.select do |_, v|
       v.options[:attribute].present?
     end
 
     cols_to_populate.each do |k, col|
-      attributes = {}
       attr = col.options[:attribute]
 
       row[k] = import.column_overrides[col.attribute] if import.column_overrides[col.attribute]
@@ -49,16 +37,44 @@ module Importable
 
       if value.present? && col.proc
         proc = col.proc
-        proc_result = instance_exec value, record, row, &proc
+        proc_result = instance_exec value, row, &proc
         value = proc_result if proc_result
       end
       value ||= col.options[:default]
 
-      attributes = set_attribute(attributes, attr, value) if value.present?
-
-      # We assign each iteration to use intermediate results
-      result.assign_attributes(attributes)
+      row[k] = value
     end
+    row
+  end
+
+  #
+  # Assists in pre-populating the record for you
+  # It wil try and find the record by id, or initialize a new record with it's attributes set based on the mapping from columns
+  #
+  def populate(row, record = nil)
+    raise 'No attributes set for columns' unless columns.any? { |_, v| v.options[:attribute].present? }
+
+    row = convert_values(row)
+
+    result = if record
+               record
+             else
+               raise 'No model set' unless model
+
+               model.find_or_initialize_by(id: row['id'])
+             end
+
+    attributes = {}
+    cols_to_populate = columns.select do |_, v|
+      v.options[:attribute].present?
+    end
+
+    cols_to_populate.each do |k, col|
+      attr = col.options[:attribute]
+      attributes = set_attribute(attributes, attr, row[k]) if row[k].present?
+    end
+
+    result.assign_attributes(attributes)
 
     result
   end
@@ -86,9 +102,11 @@ module Importable
     results = loop_data_rows do |attributes, index|
       process_data_row(attributes, index)
     end
-    @import.result.attach(io: results_file, filename: @import.importer.file_name('results'), content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    @import.result.attach(io: results_file, filename: @import.importer.file_name('results'),
+                          content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-    @import.result_message = I18n.t('importo.importers.result_message', nr: results.compact.count, of: results.count, start_row: data_start_row)
+    @import.result_message = I18n.t('importo.importers.result_message', nr: results.compact.count, of: results.count,
+                                                                        start_row: data_start_row)
     @import.complete!
   rescue StandardError => e
     @import.result_message = "Exception: #{e.message}"
@@ -121,12 +139,14 @@ module Importable
         after_save(record, attributes)
         duplicate_import = duplicate?(row_hash, record.id)
         raise Importo::DuplicateRowError if duplicate_import
+
         register_result(index, class: record.class.name, id: record.id, state: :success)
       end
       record
     rescue Importo::DuplicateRowError
       record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
-      register_result(index, id: record_id, state: :duplicate, message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
+      register_result(index, id: record_id, state: :duplicate,
+                             message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
       nil
     rescue StandardError => e
       errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
