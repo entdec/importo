@@ -82,7 +82,8 @@ module Original
   end
 
   def invalid_header_names_for_row(index)
-    cells_from_row(index).map { |header| allowed_header_names.include?(header) ? nil : header }.compact
+    stripped_headers = allowed_header_names.map { |name| name.to_s.gsub(/[^A-Za-z]/, '').downcase }
+    cells_from_row(index).reject { |header| stripped_headers.include?(header.to_s.gsub(/[^A-Za-z]/, '').downcase) }
   end
 
   def allowed_header_names
