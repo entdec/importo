@@ -1,17 +1,22 @@
-= clg.simple_form_for(@import) do |f|
+= sts.form_for(@import) do |f|
   = f.input :kind, as: :hidden
-  = clg.card title: t('.title') do |card|
-    - card.action_buttons_for(f, continue: false)
-    - clg.layout do |layout|
-      p= t('.explanation_html', name: @import.importer.class.friendly_name, sample_path: sample_import_path(kind: @import.kind))
-      - if @import.allow_export?
-        p= t('.export_html', export_path: export_path(kind: @import.kind))
+  = sts.card title: t('.title'), icon: 'fad fa-file-spreadsheet' do |card|
+    - card.action
+      = f.submit
+
+    .grid.grid-cols-12.gap-4
+      .col-span-12
+        .prose
+          p= t('.explanation_html', name: @import.importer.class.friendly_name, sample_path: sample_import_path(kind: @import.kind))
+          - if @import.allow_export?
+            p= t('.export_html', export_path: export_path(kind: @import.kind))
 
       - @import.importer.overridable_columns.each do |column|
-        = f.simple_fields_for :column_overrides do |fff|
+        = f.fields_for :column_overrides do |fff|
           - if column.collection
             = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: true, required: false
           - else
             =  fff.input column.attribute, label: column.name, required: false
 
       = f.input :original, as: :file
+
