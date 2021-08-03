@@ -3,7 +3,6 @@
 require 'axlsx'
 require 'roo'
 require 'roo-xls'
-require 'simple_form'
 require 'slim'
 require 'state_machines-activerecord'
 # require 'active_storage/downloading'
@@ -16,6 +15,7 @@ require_relative 'importo/configuration'
 
 module Importo
   class Error < StandardError; end
+
   class DuplicateRowError < Error; end
 
   class << self
