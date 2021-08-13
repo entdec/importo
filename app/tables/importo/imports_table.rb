@@ -6,9 +6,9 @@ class Importo::ImportsTable < ActionTable::ActionTable
   column(:created_at) { |import| l(import.created_at.in_time_zone(Time.zone), format: :short).to_s }
   column(:user, filter: { parameter: :ownable, collection_proc: -> { Importo::Import.order(created_at: :desc).limit(200).map(&:importo_ownable).uniq.sort_by(&:name).map { |o| [o.name, "#{o.class.name}##{o.id}"] } } } ) { |import| import.importo_ownable.name }
   column(:kind, sortable: false)
-  column(:original, sortable: false) { |import| link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment")) }
+  column(:original, sortable: false) { |import| link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment"), target: '_blank') }
   column(:state)
-  column(:result, sortable: false) { |import| import.result.attached? ? link_to(import.result_message, main_app.rails_blob_path(import.result, disposition: "attachment")) : import.result_message }
+  column(:result, sortable: false) { |import| import.result.attached? ? link_to(import.result_message, main_app.rails_blob_path(import.result, disposition: "attachment"), target: '_blank') : import.result_message }
   column(:extra_links, sortable: false) { |import| Importo.config.admin_extra_links(import).map { |name, link| link_to(link[:text], link[:url], title: link[:title], target: '_blank', class: link[:icon]) }}
 
   column :actions, title: '', sortable: false do |import|
