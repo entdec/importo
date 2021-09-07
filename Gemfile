@@ -20,3 +20,4 @@ gemspec
 gem 'rails', '~> 6.0.0'
 
 gem 'auxilium', '~> 3.0', entdec: 'components/auxilium'
+gem 'servitium', '~> 1.2', entdec: 'components/servitium'
