@@ -4,6 +4,8 @@ module Importo
   class Configuration
     attr_accessor :admin_authentication_module
     attr_accessor :base_controller
+    attr_accessor :base_service
+    attr_accessor :base_service_context
     attr_accessor :queue_name
 
     attr_writer :logger
@@ -17,6 +19,8 @@ module Importo
       @logger               = Logger.new(STDOUT)
       @logger.level         = Logger::INFO
       @base_controller      = '::ApplicationController'
+      @base_service         = '::ApplicationService'
+      @base_service_context = '::ApplicationContext'
       @current_import_owner = -> {}
       @import_callbacks     = {
         importing: lambda do |_import|
