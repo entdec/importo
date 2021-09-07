@@ -83,11 +83,11 @@ module Importo
     private
 
     def schedule_import
-      ImportJob.perform_later(id)
+      ImportService.perform_later(import: self)
     end
 
     def schedule_revert
-      RevertJob.perform_later(id)
+      RevertService.perform_later(import: self)
     end
   end
 end
