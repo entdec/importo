@@ -55,16 +55,14 @@ module Original
     %w[import_state import_created_id import_message import_errors].map(&:dup)
   end
 
-  def cells_from_row(index)
-    spreadsheet.row(index).map { |c| cleaned_data_from_cell(c) }
+  def cells_from_row(index, clean = true)
+    spreadsheet.row(index).map { |c| clean ? cleaned_data_from_cell(c) : c }
   end
 
   def cleaned_data_from_cell(cell)
-    if cell.respond_to?(:strip)
-      strip_tags cell.strip
-    else
-      cell
-    end
+    return cell unless cell.respond_to?(:strip)
+
+    strip_tags cell.strip
   end
 
   def data_start_row
@@ -115,8 +113,12 @@ module Original
 
   def loop_data_rows
     (data_start_row..spreadsheet.last_row).map do |index|
-      row = cells_from_row(index)
+      row = cells_from_row(index, false)
       attributes = Hash[[attribute_names, row].transpose]
+      attributes = attributes.map do |column, value|
+        value = strip_tags(value.strip) if value.respond_to?(:strip) && columns[column]&.options[:strip_tags] != false
+        [column, value]
+      end.to_h
       attributes.reject! { |k, _v| headers_added_by_import.include?(k) }
 
       yield attributes, index
