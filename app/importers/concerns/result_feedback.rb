@@ -42,6 +42,7 @@ module ResultFeedback
 
     def file_name(suffix = nil)
       base = friendly_name || model.class.name
+      base = base.to_s unless base.is_a?(String)
       base = base.gsub(/[_\s-]/, '_').pluralize.downcase
       "#{base}#{suffix.present? ? "_#{suffix}" : '' }.xlsx"
     end
