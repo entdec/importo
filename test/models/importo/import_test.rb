@@ -21,7 +21,7 @@ class AccountImporter < Importo::BaseImporter
 
   column 'id', 'id', attribute: 'id'
   column 'name', 'name', attribute: 'name'
-  column 'description', 'description', attribute: 'description'
+  column 'description', 'description', attribute: 'description', strip_tags: false
 end
 
 class NoHeaderAccountImporter < Importo::BaseImporter
@@ -47,6 +47,26 @@ module Importo
       import.import
 
       assert_import(import)
+    end
+
+    test 'import strips html tags unless strip_tags is set to false' do
+      import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
+      import.original.attach(io: simple_sheet([%w[id name description], ['aid', '<strong>a</strong>test', '<strong>atest</strong>-description']]), filename: 'simple_sheet.xlsx')
+      assert import.save, import.errors.messages
+      import.schedule
+      assert_equal 'scheduled', import.state
+      import.import
+
+      assert_nothing_raised do
+        assert_difference -> { Account.count }, 1 do
+          import.importer.import!
+        end
+      end
+
+      account = Account.find_by_name('atest')
+      refute_nil account
+      assert_equal '<strong>atest</strong>-description', account.description
+      assert_equal 'completed', import.reload.state, import.results
     end
 
     test 'imports an excel file with no headers' do
