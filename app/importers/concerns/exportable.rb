@@ -38,7 +38,18 @@ module Exportable
 
   def export_row(record)
     export_columns.map do |_, c|
-      c.options[:attribute] ? record.attributes[c.options[:attribute].to_s] : ''
+      value = ''
+
+      if c.options[:attribute]
+        if record.respond_to?(c.options[:attribute])
+          value = record.send(c.options[:attribute])
+          value = value&.body&.to_html if value.is_a?(ActionText::RichText)
+        end
+
+        value ||= record.attributes[c.options[:attribute].to_s]
+      end
+
+      value
     end
   end
 
