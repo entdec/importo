@@ -17,7 +17,6 @@ gemspec
 # To use a debugger
 # gem 'byebug', group: [:development, :test]
 
-gem 'rails', '~> 6.0.0'
-
 gem 'auxilium', '~> 3.0', entdec: 'components/auxilium'
+gem 'satis', '~> 0.1', entdec: 'components/satis'
 gem 'servitium', '~> 1.2', entdec: 'components/servitium'
