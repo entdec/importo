@@ -22,11 +22,9 @@ module Importo
 
     class << self
       def t(key, options = {})
-        if I18n.exists? "importers.#{name.underscore.tr('/', '.')}#{key}".to_sym
+        if I18n.exists? "importers.#{name.underscore}#{key}".to_sym
           I18n.t(key,
-                 options.merge(
-                   scope: "importers.#{name.underscore.tr('/', '.')}".to_sym
-                 ))
+                 options.merge(scope: "importers.#{name.underscore}".to_sym))
         end
       end
     end

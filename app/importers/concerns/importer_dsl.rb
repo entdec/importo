@@ -41,7 +41,7 @@ module ImporterDsl
       hint = args[1]
       hint ||= options[:hint]
 
-      options[:scope] = self.name.underscore.to_sym
+      options[:scope] = self.name.underscore.to_s.tr('/', '.').to_sym
 
       columns[name] = Importo::ImportColumn.new(name, hint, options[:explanation], options, &block)
     end
