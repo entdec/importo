@@ -18,5 +18,5 @@ gemspec
 # gem 'byebug', group: [:development, :test]
 
 gem 'auxilium', '~> 3.0', entdec: 'components/auxilium'
-gem 'satis', '~> 0.1', entdec: 'components/satis'
+gem 'satis', '~> 1', entdec: 'components/satis'
 gem 'servitium', '~> 1.2', entdec: 'components/servitium'
