@@ -108,10 +108,14 @@ module Importable
     @import.result_message = I18n.t('importo.importers.result_message', nr: results.compact.count, of: results.count,
                                                                         start_row: data_start_row)
     @import.complete!
+
+    true
   rescue StandardError => e
     @import.result_message = "Exception: #{e.message}"
     Rails.logger.error "Importo exception: #{e.message} backtrace #{e.backtrace.join(';')}"
     @import.failure!
+
+    false
   end
 
   private
