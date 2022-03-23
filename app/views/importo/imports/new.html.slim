@@ -11,12 +11,14 @@
           - if @import.allow_export?
             p= t('.export_html', export_path: export_path(kind: @import.kind))
 
-      - @import.importer.overridable_columns.each do |column|
-        = f.fields_for :column_overrides do |fff|
-          - if column.collection
-            = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: true, required: false
-          - else
-            =  fff.input column.attribute, label: column.name, required: false
+      .col-span-12
+        - @import.importer.overridable_columns.each do |column|
+          = f.fields_for :column_overrides do |fff|
+            - if column.collection
+              = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: true, required: false
+            - else
+              =  fff.input column.attribute, label: column.name, required: false
 
-      = f.input :original, as: :file
+      .col-span-12
+        = f.input :original, as: :file
 
