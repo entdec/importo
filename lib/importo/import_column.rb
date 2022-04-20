@@ -46,6 +46,10 @@ module Importo
       options[:overridable]
     end
 
+    def override_required?
+      options[:override_required]
+    end
+
     ##
     # Collection of values (name, id) that are valid for this field, if a name is entered it will be replaced by the id during pre-processing
     def collection

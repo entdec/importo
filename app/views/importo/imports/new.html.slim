@@ -15,9 +15,9 @@
         - @import.importer.overridable_columns.each do |column|
           = f.fields_for :column_overrides do |fff|
             - if column.collection
-              = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: true, required: false
+              = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: column.override_required?, input_html: {required: column.override_required? }
             - else
-              =  fff.input column.attribute, label: column.name, required: false
+              =  fff.input column.attribute, label: column.name, required: column.override_required?
 
       .col-span-12
         = f.input :original, as: :file
