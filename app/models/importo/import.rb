@@ -13,8 +13,8 @@ module Importo
     validate :content_validator
 
     begin
-      has_one_attached :original
-      has_one_attached :result
+      has_one_attached :original, service: :importo
+      has_one_attached :result, service: :importo
     rescue NoMethodError
       # Weird loading sequence error, is fixed by the lib/importo/helpers
     end
