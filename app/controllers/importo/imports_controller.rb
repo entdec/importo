@@ -16,7 +16,7 @@ module Importo
         return
       end
       @import = Import.new(import_params.merge(locale: I18n.locale, importo_ownable: Importo.config.current_import_owner))
-      if @import.valid? && @import.schedule!
+      if @import.valid? && @import.save && @import.schedule!
         flash[:notice] = t('.flash.success', id: @import.id)
         redirect_to action: :index
       else
