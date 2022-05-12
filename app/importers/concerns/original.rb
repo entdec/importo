@@ -25,7 +25,7 @@ module Original
 
       @original = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
       @original.binmode
-      import.original.download { |block| @original.write(block) }
+      @original.write(import.original.download)
       @original.flush
       @original.rewind
     end
