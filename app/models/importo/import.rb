@@ -19,7 +19,7 @@ module Importo
       # Weird loading sequence error, is fixed by the lib/importo/helpers
     end
 
-    state_machine :state, initial: :new do
+    state_machine :state, initial: :new, use_transactions: false do
       audit_trail class: ResourceStateTransition, as: :resource if "ResourceStateTransition".safe_constantize
 
       state :importing
