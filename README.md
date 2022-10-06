@@ -4,7 +4,13 @@ Short description and motivation.
 
 ## Usage
 
-Add a `app/importers` folder to your Rails app and create a class that inherits from `Importo::Base`:
+Add an `app/importers` folder to your Rails app which will contain all importers.
+It's recommended to add an ApplicationImporter that inherits from `Importo::BaseImporter` and that all other importers inherit from.
+
+```ruby
+class ApplicationImporter < Importo::BaseImporter
+end
+```
 
 ```ruby
 class ProductsImporter < ApplicationImporter
