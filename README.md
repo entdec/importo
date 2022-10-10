@@ -27,8 +27,10 @@ class ProductsImporter < ApplicationImporter
 
   # attributes
   column attribute: :name
-  column attribute: :number
   column attribute: :description, strip_tags: false
+  column attribute: :number, export: { format: 'text', value: ->(record) { record.number }, example: 'FLAG-NLD-001' }
+  column attribute: :expires_on, export: { format: 'dd/mm/yyyy h:mm'}
+  column name: :price, export: { format: 'number', value: ->(record) { record.price } }
   column attribute: :images do |value|
     value.split(',').map do |image|
       uri = URI.parse(image)
@@ -42,6 +44,7 @@ class ProductsImporter < ApplicationImporter
   end
 end
 ```
+export args for column is optional, format takes excel custom format codes default is General  
 
 You should add translations to your locale files:
 

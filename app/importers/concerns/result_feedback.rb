@@ -14,8 +14,8 @@ module ResultFeedback
       xls.use_shared_strings = true
       workbook = xls.workbook
       workbook.styles do |style|
-        alert_cell = style.add_style(bg_color: 'dd7777')
-        duplicate_cell = style.add_style(bg_color: 'ddd777')
+        alert_cell_bg_color = 'dd7777'
+        duplicate_cell_bg_color = 'ddd777'
 
         sheet = workbook.add_worksheet(name: I18n.t('importo.sheet.results.name'))
 
@@ -24,14 +24,27 @@ module ResultFeedback
         sheet.add_row rich_text_headers
         loop_data_rows do |attributes, index|
           row_state = result(index, 'state')
-
-          style = case row_state
+          bg_color = case row_state
                   when 'duplicate'
-                    duplicate_cell
+                    duplicate_cell_bg_color
                   when 'failure'
-                    alert_cell
+                    alert_cell_bg_color
                   end
-          sheet.add_row attributes.values + results(index), style: Array.new(attributes.values.count) + Array.new(headers_added_by_import.count) { style }
+          styles = attributes.map do |column, value|
+            export_format = columns[column]&.options.dig(:export, :format)
+            if export_format == "number" || ( export_format.nil? && value.is_a?(Numeric)) 
+              number = workbook.styles.add_style(format_code: '#', bg_color: bg_color)
+            elsif export_format == 'text' || ( export_format.nil? && value.is_a?(String))
+              text = workbook.styles.add_style(format_code: '@' , bg_color: bg_color)
+            elsif export_format
+              workbook.styles.add_style(format_code: export_format.to_s, bg_color: bg_color)
+            else
+              workbook.styles.add_style(format_code: 'General' , bg_color: bg_color)
+            end
+          end  
+          
+          styles = styles + Array.new(headers_added_by_import.count)
+          sheet.add_row attributes.values + results(index), style: styles
         end
 
         sheet.auto_filter = "A1:#{sheet.dimension.last_cell_reference}"

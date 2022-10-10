@@ -8,9 +8,9 @@ class TranslatedAccountImporter < Importo::BaseImporter
 
   model Account
 
-  column 'id', 'id', attribute: 'id'
-  column 'name', 'name', attribute: 'name'
-  column 'description', 'description', attribute: 'description'
+  column attribute: 'id'
+  column attribute: 'name'
+  column attribute: 'description'
 end
 
 class AccountImporter < Importo::BaseImporter
@@ -19,9 +19,9 @@ class AccountImporter < Importo::BaseImporter
 
   model Account
 
-  column 'id', 'id', attribute: 'id'
-  column 'name', 'name', attribute: 'name'
-  column 'description', 'description', attribute: 'description', strip_tags: false
+  column attribute: 'id'
+  column attribute: 'name'
+  column attribute: 'description', strip_tags: false
 end
 
 class NoHeaderAccountImporter < Importo::BaseImporter
@@ -31,9 +31,9 @@ class NoHeaderAccountImporter < Importo::BaseImporter
 
   model Account
 
-  column 'id', 'id', attribute: 'id'
-  column 'name', 'name', attribute: 'name'
-  column 'description', 'description', attribute: 'description'
+  column attribute: 'id'
+  column attribute: 'name'
+  column attribute: 'description'
 end
 
 module Importo

@@ -5,10 +5,10 @@ module Importo
     attr_accessor :proc, :options
     attr_writer :name, :hint, :explanation
 
-    def initialize(name, hint, explanation, options, &block)
+    def initialize(name: nil, **options, &block)
       @name = name
-      @hint = hint
-      @explanation = explanation
+      @hint = options[:hint]
+      @explanation = options[:explanation]
       @options = options || {}
       @proc = block
     end
@@ -39,7 +39,7 @@ module Importo
     def explanation
       I18n.t(".explanation.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
     end
-
+    
     ##
     # If set this allows the user to set a value during upload that overrides the uploaded values.
     def overridable?
