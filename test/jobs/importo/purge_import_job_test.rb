@@ -34,6 +34,8 @@ module Importo
 
       PurgeImportJob.perform_now(account, 3)
 
+      assert import.original.attached?
+
       assert_raises ActiveRecord::RecordNotFound do
         import.reload
       end
