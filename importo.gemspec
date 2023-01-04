@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.version     = Importo::VERSION
   s.authors     = ['Andre Meij', 'Tom de Grunt']
   s.email       = ['andre@itsmeij.com', 'tom@degrunt.nl']
-  s.homepage    = 'https://gitlab.com/entropydecelerator/importo'
+  s.homepage    = 'https://github.com/entdec/importo'
   s.summary     = 'Rails engine allowing uploads and imports'
   s.description = 'Upload xls, xlsx and csv files and import the data in rails models.'
   s.license     = 'MIT'
@@ -23,16 +23,17 @@ Gem::Specification.new do |s|
   s.add_dependency 'roo', '~> 2.7'
   s.add_dependency 'roo-xls', '~> 1.1'
   s.add_dependency 'satis', '~> 1'
-  s.add_dependency 'servitium', '>= 1.2.15'
+  s.add_dependency 'servitium', '>= 1.2'
   s.add_dependency 'slim', '> 3.0'
   s.add_dependency 'state_machines-activerecord', '~> 0.5'
   s.add_dependency 'state_machines-audit_trail', '~> 2'
 
-  s.add_development_dependency 'auxilium', '~> 0'
+  s.add_development_dependency 'auxilium', '~> 3'
   s.add_development_dependency 'minitest', '~> 5.11'
   s.add_development_dependency 'minitest-reporters', '~> 1.1'
   s.add_development_dependency 'pg'
   s.add_development_dependency 'pry'
   s.add_development_dependency 'pry-rails', '~> 0.3'
   s.add_development_dependency 'rubocop', '~> 0.49'
+  s.add_development_dependency 'solargraph', '~> 0.47'
 end
