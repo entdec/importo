@@ -1,8 +1,8 @@
 en:
   helpers:
-      submit:
-        importo/import:
-          create: "Import"
+    submit:
+      importo/import:
+        create: "Import"
   importo:
     sheet:
       results:
@@ -10,24 +10,26 @@ en:
       explanation:
         name: Explanation
         column: Column
-        explanation: Explanation
+        value: Value
+        explanation: Purpose
+        example: Example
     imports:
       index:
         title: Import results
       new:
-        submit: 'Import'
+        submit: "Import"
         title: Import
         explanation_html: A CSV or Excel file can be used to import records. The first row should be the column names.<br>If an <b>id</b> is supplied it will update the matching record instead of creating a new one.<br>Download a <a href='%{sample_path}' target='_blank'>sample template</a> with all supported column names and their explanation.
         export_html: You can download the currently stored records.<br>Download the <a href='%{export_path}' target='_blank'>current data</a> with all supported columns
-        error_explanation: 'The following problems prohibited this import from completing:'
+        error_explanation: "The following problems prohibited this import from completing:"
         import: Import %{kind}
         import_button: Import
       create:
         flash:
           no_file: Import failed, please upload a file.
           error: Import failed, there were problems.
-          success: 'Import scheduled with id %{id}, you will get an email with the results.'
+          success: "Import scheduled with id %{id}, you will get an email with the results."
     errors:
-      structure_invalid: 'The structure is invalid, these are the invalid headers: %{invalid_headers}'
+      structure_invalid: "The structure is invalid, these are the invalid headers: %{invalid_headers}"
     importers:
       result_message: "Successfully imported %{nr} of %{of} rows"

@@ -43,7 +43,7 @@ module ImporterDsl
 
       options[:scope] = self.name.underscore.to_s.tr('/', '.').to_sym
 
-      columns[name] = Importo::ImportColumn.new(name, hint, options[:explanation], options, &block)
+      columns[name] = Importo::ImportColumn.new(name, hint, options[:explanation], options[:value], options[:example], options, &block)
     end
 
     def model(model = nil)
