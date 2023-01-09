@@ -6,9 +6,9 @@ nl:
       explanation:
         name: Uitleg
         column: Kolom
-        value: Value
-        explanation: Purpose
-        example: Example
+        value: Waarde
+        explanation: Doeleinde
+        example: Voorbeeld
     imports:
       index:
         title: Import resultaten
