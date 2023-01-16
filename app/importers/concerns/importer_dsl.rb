@@ -31,19 +31,11 @@ module ImporterDsl
     #
     # @param [Object] args
     # @param [Object] block which will filter the results before storing the value in the attribute, this is useful for lookups or reformatting
-    def column(*args, &block)
-      options = args.extract_options!
-
-      name = args[0]
+    def column(**options, &block)
       name ||= options[:name]
       name ||= options[:attribute]
-
-      hint = args[1]
-      hint ||= options[:hint]
-
       options[:scope] = self.name.underscore.to_s.tr('/', '.').to_sym
-
-      columns[name] = Importo::ImportColumn.new(name, hint, options[:explanation], options[:value], options[:example], options, &block)
+      columns[name] = Importo::ImportColumn.new(name: name, **options, &block)
     end
 
     def model(model = nil)

@@ -14,8 +14,8 @@ module ResultFeedback
       xls.use_shared_strings = true
       workbook = xls.workbook
       workbook.styles do |style|
-        alert_cell = style.add_style(bg_color: 'dd7777')
-        duplicate_cell = style.add_style(bg_color: 'ddd777')
+        alert_cell_bg_color = 'dd7777'
+        duplicate_cell_bg_color = 'ddd777'
 
         sheet = workbook.add_worksheet(name: I18n.t('importo.sheet.results.name'))
 
@@ -23,15 +23,36 @@ module ResultFeedback
         rich_text_headers = headers.map { |header| Axlsx::RichText.new.tap { |rt| rt.add_run(header.dup, b: true) } }
         sheet.add_row rich_text_headers
         loop_data_rows do |attributes, index|
-          row_state = result(index, 'state')
-
-          style = case row_state
-                  when 'duplicate'
-                    duplicate_cell
-                  when 'failure'
-                    alert_cell
+        
+          row_state = result(index, :state)
+          bg_color = case row_state.to_s
+                  when "duplicate"
+                    duplicate_cell_bg_color
+                  when "failure"
+                    alert_cell_bg_color
                   end
-          sheet.add_row attributes.values + results(index), style: Array.new(attributes.values.count) + Array.new(headers_added_by_import.count) { style }
+          styles = attributes.map do |column, value|
+            export_format = columns[column]&.options.dig(:export, :format)
+            if export_format == "number" || ( export_format.nil? && value.is_a?(Numeric)) 
+              format_code = '#'
+            elsif export_format == 'text' || ( export_format.nil? && value.is_a?(String))
+              format_code = '@'
+            elsif export_format
+              format_code = export_format.to_s
+            else
+              format_code = 'General' 
+            end
+            config_style ={}
+            config_style.merge!(columns[column]&.options[:style]) unless columns[column]&.options[:style].nil?
+            config_style.merge!({format_code: format_code,  bg_color: bg_color})
+            workbook.styles.add_style(config_style)
+          end  
+          header_array =[]
+          headers_added_by_import.count.times do |i|
+            header_array << workbook.styles.add_style(bg_color: bg_color)
+          end
+          styles = styles + header_array
+          sheet.add_row attributes.values + results(index), style: styles
         end
 
         sheet.auto_filter = "A1:#{sheet.dimension.last_cell_reference}"

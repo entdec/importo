@@ -5,12 +5,10 @@ module Importo
     attr_accessor :proc, :options
     attr_writer :name, :hint, :explanation, :value, :example
 
-    def initialize(name, hint, explanation, value, example, options, &block)
+    def initialize(name: nil, **options, &block)
       @name = name
-      @hint = hint
-      @explanation = explanation
-      @value = value
-      @example = example
+      @hint = options[:hint]
+      @explanation = options[:explanation]
       @options = options || {}
       @proc = block
     end
@@ -41,7 +39,7 @@ module Importo
     def explanation
       I18n.t(".explanation.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
     end
-
+    
     def value
       I18n.t(".value.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
     end
