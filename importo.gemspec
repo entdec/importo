@@ -34,6 +34,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'pg'
   s.add_development_dependency 'pry'
   s.add_development_dependency 'pry-rails', '~> 0.3'
-  s.add_development_dependency 'rubocop', '~> 0.49'
   s.add_development_dependency 'solargraph', '~> 0.47'
+  s.add_development_dependency 'standard', '>= 1'
 end
