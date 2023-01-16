@@ -22,8 +22,6 @@ class Importo::ImportsTable < ActionTable::ActionTable
     end
   end
 
-  table_views(to_s.underscore)
-
   initial_order :created_at, :desc
 
   private

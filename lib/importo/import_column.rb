@@ -3,7 +3,7 @@
 module Importo
   class ImportColumn
     attr_accessor :proc, :options
-    attr_writer :name, :hint, :explanation
+    attr_writer :name, :hint, :explanation, :value, :example
 
     def initialize(name: nil, **options, &block)
       @name = name
@@ -40,6 +40,14 @@ module Importo
       I18n.t(".explanation.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
     end
     
+    def value
+      I18n.t(".value.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+    end
+
+    def example
+      I18n.t(".example.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+    end
+
     ##
     # If set this allows the user to set a value during upload that overrides the uploaded values.
     def overridable?

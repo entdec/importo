@@ -114,10 +114,10 @@ module Exportable
       end
 
       # Header row
-      sheet.add_row [I18n.t('importo.sheet.explanation.column'), I18n.t('importo.sheet.explanation.explanation')], style: [header_style] * 2
+      sheet.add_row [I18n.t('importo.sheet.explanation.column'), I18n.t('importo.sheet.explanation.value'), I18n.t('importo.sheet.explanation.explanation'), I18n.t('importo.sheet.explanation.example')], style: [header_style] * 4
       export_columns.each do |_, c|
         styles = [c.options[:required] ? required_style : column_style, wrap_style]
-        sheet.add_row [c.name, c.explanation], style: styles
+        sheet.add_row [c.name, c.value, c.explanation, c.example], style: styles
       end
     end
 
