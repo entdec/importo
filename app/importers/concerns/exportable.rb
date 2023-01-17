@@ -14,7 +14,9 @@ module Exportable
   end
 
   def sample_data
-    [export_columns.map { |_, c| c.options[:example] || '' }]
+    sample_data = []
+    100.times { sample_data << export_columns.map { |_, c| c.options[:example] || '' } }
+    return sample_data
   end
 
   #
@@ -76,17 +78,17 @@ module Exportable
       export_columns.each.with_index do |f, i|
         field = f.last
         sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count + 1}", author: '', text: field.hint, visible: false if field.hint.present?
-      end  
-      styles = export_columns.map do |_, c| 
-       if c.options.dig(:export, :format) == "number" || ( c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(Numeric)) 
-        number = workbook.styles.add_style format_code: '#' 
-       elsif c.options.dig(:export, :format) == 'text' || ( c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(String))
-        text = workbook.styles.add_style format_code: '@' 
-       elsif c.options.dig(:export, :format) 
-        workbook.styles.add_style format_code: c.options.dig(:export, :format).to_s
-       else
-        workbook.styles.add_style format_code: 'General'
-       end
+      end
+      styles = export_columns.map do |_, c|
+        if c.options.dig(:export, :format) == 'number' || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(Numeric)) 
+          number = workbook.styles.add_style format_code: '#'
+        elsif c.options.dig(:export, :format) == 'text' || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(String))
+          text = workbook.styles.add_style format_code: '@'
+        elsif c.options.dig(:export, :format) 
+          workbook.styles.add_style format_code: c.options.dig(:export, :format).to_s
+        else
+          workbook.styles.add_style format_code: 'General'
+        end
       end
       # Examples
       data_rows.each do |data|
