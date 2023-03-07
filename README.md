@@ -65,12 +65,21 @@ en:
         number: Number
         description: Description
         images: Images
-      explanation:
-        id: Record-id, only needed if you want to update an existing record
+      # Shown in note in import sheet
       hint:
         id: 36 characters, existing of hexadecimal numbers, separated by dashes
         images: Allows multiple image urls, separated by comma
-      introduction: null
+      # Below items are show in explanation sheet
+      explanation:
+        id: Record-id, only needed if you want to update an existing record
+      example:
+        id: 12345678-1234-1234-1234-123456789012
+        name: TEST-123
+        number: TEST-123
+        description: Test product
+      value:
+        id: Optional
+
 ```
 
 ## Installation
