@@ -43,12 +43,13 @@ module Exportable
       value = ''
 
       if c.options[:attribute]
-        if record.respond_to?(c.options[:attribute])
+        if c.options[:export]&.key?(:value)
+          value = c.options[:export][:value].call(record) if c.options[:export][:value].is_a?(Proc)
+        elsif record.respond_to?(c.options[:attribute])
           value = record.send(c.options[:attribute])
           value = value&.body&.to_html if value.is_a?(ActionText::RichText)
         end
-
-        value ||= record.attributes[c.options[:attribute].to_s]
+        value ||= record.attributes[c.options[:attribute].to_s] if value.nil?
       end
 
       value
