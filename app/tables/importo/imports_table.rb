@@ -3,7 +3,7 @@
 class Importo::ImportsTable < ActionTable::ActionTable
   model Importo::Import
 
-  column(:created_at) { |import| l(import.created_at.in_time_zone(Time.zone), format: :short).to_s }
+  column(:created_at) { |import| ln(import.created_at).to_s }
   column(:user, filter: { parameter: :ownable, collection_proc: -> { Importo::Import.order(created_at: :desc).limit(200).map(&:importo_ownable).uniq.sort_by(&:name).map { |o| [o.name, "#{o.class.name}##{o.id}"] } } } ) { |import| import.importo_ownable.name }
   column(:kind, sortable: false)
   column(:original, sortable: false) { |import| link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment"), target: '_blank') }
