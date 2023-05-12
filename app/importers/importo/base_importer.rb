@@ -12,7 +12,7 @@ module Importo
     # include ActiveStorage::Downloading
 
     delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?,
-             :ignore_header?, :t, to: :class
+            :ignore_header?, :t, to: :class
     attr_reader :import, :blob
 
     def initialize(imprt = nil)
@@ -20,11 +20,15 @@ module Importo
       I18n.locale = import.locale if import&.locale # Should we do this?? here??
     end
 
+    def current_user
+      @import.importo_ownable
+    end
+
     class << self
       def t(key, options = {})
         if I18n.exists? "importers.#{name.underscore}#{key}".to_sym
           I18n.t(key,
-                 options.merge(scope: "importers.#{name.underscore}".to_sym))
+                options.merge(scope: "importers.#{name.underscore}".to_sym))
         end
       end
     end

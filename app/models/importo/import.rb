@@ -7,6 +7,7 @@ module Importo
     belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
+    has_many :results, class_name: "Importo::Result", dependent: :delete_all
 
     validates :kind, presence: true
     validates :original, presence: true

@@ -10,8 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_09_08_071920) do
-
+ActiveRecord::Schema[7.0].define(version: 2023_05_10_083043) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -59,12 +58,28 @@ ActiveRecord::Schema.define(version: 2021_09_08_071920) do
     t.string "state"
     t.string "file_name"
     t.string "result_message"
-    t.jsonb "results"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "locale", default: "en"
     t.jsonb "column_overrides", default: {}, null: false
   end
 
+  create_table "importo_results", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "row_index"
+    t.uuid "import_id", null: false
+    t.jsonb "details", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["import_id"], name: "index_importo_results_on_import_id"
+  end
+
+  create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name"
+    t.string "description"
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+  end
+
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "importo_results", "importo_imports", column: "import_id"
 end

@@ -57,12 +57,12 @@ module Importable
     row = convert_values(row)
 
     result = if record
-               record
-             else
-               raise 'No model set' unless model
+              record
+            else
+              raise 'No model set' unless model
 
-               model.find_or_initialize_by(id: row['id'])
-             end
+              model.find_or_initialize_by(id: row['id'])
+            end
 
     attributes = {}
     cols_to_populate = columns.select do |_, v|
@@ -99,15 +99,21 @@ module Importable
   def import!
     raise ArgumentError, 'Invalid data structure' unless structure_valid?
 
-    results = loop_data_rows do |attributes, index|
-      process_data_row(attributes, index)
-    end
-    @import.result.attach(io: results_file, filename: @import.importer.file_name('results'),
-                          content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    signal = Signum::info(@import.importer.current_user, {title: "", text: "Importing #{@import.original.filename}", sticky: true, total: @import.importer.send(:row_count)})
+    Signum::SendSignalsJob.perform_now(signal, true)
 
-    @import.result_message = I18n.t('importo.importers.result_message', nr: results.compact.count, of: results.count,
-                                                                        start_row: data_start_row)
-    @import.complete!
+    batch = Sidekiq::Batch.new
+    batch.description = "Import Batch"
+    # this will call "ImportJobCallback.new.on_complete"
+    batch.on(:complete, Importo::ImportJobCallback, import_id: self.import.id, signal_id: signal.id)
+    # You can also use Class#method notation which is like calling "AnotherClass.new.method"
+    #batch.on(:success, 'AnotherClass#method', 'uid' => current_user.id)
+
+    batch.jobs do
+      loop_data_rows do |attributes, index|
+        Importo::ImportJob.perform_async(attributes.to_h, index, self.import.id, signal.id)
+      end
+    end
 
     true
   rescue StandardError => e
@@ -116,15 +122,6 @@ module Importable
     @import.failure!
 
     false
-  end
-
-  private
-
-  ##
-  # Overridable failure method
-  #
-  def failure(_row, _record, index, exception)
-    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
   end
 
   def process_data_row(attributes, index)
@@ -150,7 +147,7 @@ module Importable
     rescue Importo::DuplicateRowError
       record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
       register_result(index, id: record_id, state: :duplicate,
-                             message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
+        message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
       nil
     rescue StandardError => e
       errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
@@ -159,6 +156,15 @@ module Importable
       register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
       nil
     end
+  end
+
+  private
+
+  ##
+  # Overridable failure method
+  #
+  def failure(_row, _record, index, exception)
+    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
   end
 
   def set_attribute(hash, path, value)

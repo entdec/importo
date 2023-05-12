@@ -5,6 +5,7 @@ require 'roo'
 require 'roo-xls'
 require 'slim'
 require 'state_machines-activerecord'
+require 'signum'
 # require 'active_storage/downloading'
 
 require_relative 'importo/engine'
