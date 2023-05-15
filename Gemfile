@@ -8,5 +8,5 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'servitium', '~> 1.1'
-gem 'signum', '~> 0.3'
+gem "signum", "~> 0.3", path: '/Users/waqas/Desktop/Projects/entdec/signum'
 gem "sidekiq-pro"

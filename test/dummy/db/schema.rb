@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_05_10_083043) do
+ActiveRecord::Schema[7.0].define(version: 202304095175035) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -71,6 +71,16 @@ ActiveRecord::Schema[7.0].define(version: 2023_05_10_083043) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["import_id"], name: "index_importo_results_on_import_id"
+  end
+
+  create_table "signum_signals", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "kind", default: "notice"
+    t.boolean "sticky"
+    t.string "icon"
+    t.string "title"
+    t.text "text"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

@@ -117,6 +117,7 @@ module Importable
 
     true
   rescue StandardError => e
+    binding.pry
     @import.result_message = "Exception: #{e.message}"
     Rails.logger.error "Importo exception: #{e.message} backtrace #{e.backtrace.join(';')}"
     @import.failure!
