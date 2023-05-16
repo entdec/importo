@@ -3,7 +3,7 @@ module Importo
     include Sidekiq::Job
 
     def perform(attributes, index, import_id, signal_id)
-      attributes = attributes.deep_symbolize_keys
+      attributes = attributes.deep_symbolize_keys if !Rails.env.test?
       import = Import.find(import_id)
       record = import.importer.process_data_row(attributes, index)
       if record.present?

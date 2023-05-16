@@ -3,6 +3,7 @@ module Importo
     include Rails.application.routes.url_helpers
     
     def on_complete(status, options)
+      options = options.deep_stringify_keys
       import = Import.find(options["import_id"])
       if import.present?
         import.result.attach(io: import.importer.results_file, filename: import.importer.file_name('results'), 
@@ -12,7 +13,7 @@ module Importo
         
         import.complete!
 
-        if import.result.attached?
+        if import.result.attached? && options["signal_id"].present?
           signal = Signum::Signal.find(options["signal_id"])
           signal.update(metadata: {links: [{title: "Download", url: rails_blob_path(import.result, disposition: "attachment", only_path: true)}]})
         end
