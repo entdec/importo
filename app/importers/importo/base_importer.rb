@@ -10,6 +10,13 @@ module Importo
     include ResultFeedback
     include ImporterDsl
     # include ActiveStorage::Downloading
+    include ActiveSupport::Callbacks
+    define_callbacks :import
+    define_callbacks :row_import
+
+    Importo::Import.state_machine.states.map(&:name).each do |state|
+      define_callbacks state
+    end
 
     delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?,
             :ignore_header?, :t, to: :class
@@ -20,11 +27,8 @@ module Importo
       I18n.locale = import.locale if import&.locale # Should we do this?? here??
     end
 
-    def current_user
-      if Rails.env.test?
-        User.find_or_create_by(name: 'test')
-      else
-        @import.importo_ownable
+    def state_changed(import, transition)
+      run_callbacks(transition.to_name) do
       end
     end
 

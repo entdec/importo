@@ -11,6 +11,10 @@ class TranslatedAccountImporter < Importo::BaseImporter
   column attribute: 'id'
   column attribute: 'name'
   column attribute: 'description'
+
+  def current_user
+    User.find_or_create_by(name: 'test')
+  end
 end
 
 class AccountImporter < Importo::BaseImporter
@@ -22,6 +26,10 @@ class AccountImporter < Importo::BaseImporter
   column attribute: 'id'
   column attribute: 'name'
   column attribute: 'description', strip_tags: false
+
+  def current_user
+    User.find_or_create_by(name: 'test')
+  end
 end
 
 class NoHeaderAccountImporter < Importo::BaseImporter
@@ -34,6 +42,10 @@ class NoHeaderAccountImporter < Importo::BaseImporter
   column attribute: 'id'
   column attribute: 'name'
   column attribute: 'description'
+
+  def current_user
+    User.find_or_create_by(name: 'test')
+  end
 end
 
 module Importo

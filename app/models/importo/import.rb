@@ -30,7 +30,7 @@ module Importo
       state :reverted
 
       after_transition any => any do |imprt, transition|
-        CallbackService.perform_later(import: imprt, callback: transition.to_name)
+        imprt.importer.state_changed(imprt, transition)
       end
 
       after_transition any => :scheduled, do: :schedule_import

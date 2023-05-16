@@ -99,6 +99,9 @@ module Importable
   def import!
     raise ArgumentError, 'Invalid data structure' unless structure_valid?
 
+    run_callbacks(:import) do
+    end
+
     signal = Signum::info(@import.importer.current_user, {title: "", text: "Importing #{@import.original.filename}", sticky: true, total: @import.importer.send(:row_count)})
     Signum::SendSignalsJob.perform_now(signal, true)
 
@@ -111,7 +114,7 @@ module Importable
 
     batch.jobs do
       loop_data_rows do |attributes, index|
-        Importo::ImportJob.perform_async(attributes.to_h, index, self.import.id, signal.id)
+        Importo::ImportJob.set(queue: Importo.config.queue_name).perform_async(attributes.to_h, index, self.import.id, signal.id)
       end
     end
 
@@ -125,6 +128,8 @@ module Importable
   end
 
   def process_data_row(attributes, index)
+    run_callbacks(:row_import) do
+    end
     record = nil
     row_hash = Digest::SHA256.base64digest(attributes.inspect)
     duplicate_import = nil

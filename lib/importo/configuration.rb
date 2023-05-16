@@ -10,7 +10,6 @@ module Importo
 
     attr_writer :logger
     attr_writer :current_import_owner
-    attr_writer :import_callbacks
     attr_writer :admin_visible_imports
     attr_writer :admin_can_destroy
     attr_writer :admin_extra_links
@@ -22,14 +21,6 @@ module Importo
       @base_service         = '::ApplicationService'
       @base_service_context = '::ApplicationContext'
       @current_import_owner = -> {}
-      @import_callbacks     = {
-        importing: lambda do |_import|
-        end,
-        completed: lambda do |_import|
-        end,
-        failed:    lambda do |_import|
-        end
-      }
       @queue_name = :import
 
       @admin_visible_imports = -> { Importo::Import.where(importo_ownable: current_import_owner) }
@@ -47,10 +38,6 @@ module Importo
     def current_import_owner
       raise 'current_import_owner should be a Proc' unless @current_import_owner.is_a? Proc
       instance_exec(&@current_import_owner)
-    end
-
-    def import_callback(import, state)
-      instance_exec(import, &@import_callbacks[state]) if @import_callbacks[state]
     end
 
     def admin_visible_imports
