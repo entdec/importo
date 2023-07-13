@@ -1,6 +1,6 @@
 = sts.form_for(@import) do |f|
   = f.input :kind, as: :hidden
-  = sts.card title: t('.title'), icon: 'fad fa-file-spreadsheet' do |card|
+  = sts.card :"importo_imports #{@import.kind}", title: t('.title'), icon: 'fad fa-file-spreadsheet' do |card|
     - card.action
       = f.submit
 
