@@ -3,7 +3,7 @@
 module Importo
   class CallbackService < ApplicationService
     context do
-      attribute :import
+      attribute :import, type: Import, typecaster: ->(value) { value.is_a?(Import) ? value : Import.find(value) }
       attribute :callback
     end
 
