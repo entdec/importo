@@ -78,14 +78,16 @@ module Exportable
 
       export_columns.each.with_index do |f, i|
         field = f.last
-        sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count + 1}", author: '', text: field.hint, visible: false if field.hint.present?
+        if field.hint.present?
+          sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count + 1}", author: '', text: field.hint, visible: false
+        end
       end
       styles = export_columns.map do |_, c|
         if c.options.dig(:export, :format) == 'number' || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(Numeric)) 
           number = workbook.styles.add_style format_code: '#'
         elsif c.options.dig(:export, :format) == 'text' || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(String))
           text = workbook.styles.add_style format_code: '@'
-        elsif c.options.dig(:export, :format) 
+        elsif c.options.dig(:export, :format)
           workbook.styles.add_style format_code: c.options.dig(:export, :format).to_s
         else
           workbook.styles.add_style format_code: 'General'
@@ -120,7 +122,11 @@ module Exportable
       sheet.add_row [I18n.t('importo.sheet.explanation.column'), I18n.t('importo.sheet.explanation.value'), I18n.t('importo.sheet.explanation.explanation'), I18n.t('importo.sheet.explanation.example')], style: [header_style] * 4
       export_columns.each do |_, c|
         styles = [c.options[:required] ? required_style : column_style, wrap_style]
-        sheet.add_row [c.name, c.value, c.explanation, c.example], style: styles
+        value = c.value
+        example = c.example
+        value = add_enclosed_text(value, I18n.t('importo.sheet.explanation.enclosed_value')) if c.options[:enclosed]
+
+        sheet.add_row [c.name, value, c.explanation, example], style: styles
       end
     end
 
@@ -128,6 +134,14 @@ module Exportable
     sheet.column_info[1].width = 150
 
     xls.to_stream
+  end
+
+  def add_enclosed_text(str, text)
+    if str.present?
+      "#{str} (#{text})"
+    else
+      text
+    end
   end
 
   def export_columns
