@@ -11,7 +11,6 @@ module Original
 
     if import.respond_to?(:attachment_changes) && import.attachment_changes['original']
       @original ||= import.attachment_changes['original']&.attachable
-
       if @original.is_a?(Hash)
         tempfile = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
         tempfile.binmode
@@ -106,9 +105,18 @@ module Original
   end
 
   def duplicate?(row_hash, id)
-    return false if allow_duplicates? || row_hash['id'] == id
+    # FIXME: we check row_hash['id'] but this is always a String? see importable.
+    return false if (allow_duplicates? == true) || row_hash['id'] == id
 
-    duplicate(row_hash, id)
+    case allow_duplicates?
+    when :last
+      query_json = [{id: id, state: 'success'}].to_json
+      last_record = Importo::Import.where('results @> :q AND id <> :id', id: id, q: query_json).order(created_at: :desc).limit(1)
+      last_record = Importo::Import.where(id: last_record).where('results @> :q', q: [{hash: row_hash}].to_json).first
+      last_record || false
+    else
+      duplicate(row_hash, id)
+    end
   end
 
   def loop_data_rows
@@ -116,12 +124,24 @@ module Original
       row = cells_from_row(index, false)
       attributes = Hash[[attribute_names, row].transpose]
       attributes = attributes.map do |column, value|
+        value = nil if value == ""
+        value = extract_enclosed_string(value) if columns[column]&.options[:enclosed]
         value = strip_tags(value.strip) if value.respond_to?(:strip) && columns[column]&.options[:strip_tags] != false
+
         [column, value]
       end.to_h
       attributes.reject! { |k, _v| headers_added_by_import.include?(k) }
 
       yield attributes, index
+    end
+  end
+
+  def extract_enclosed_string(str)
+    str = str.to_s
+    if str.size > 1 && (str.start_with?('"', '“', '”') && str.end_with?('"', '“', '”'))
+      str[1..-2]
+    else
+      str
     end
   end
 
