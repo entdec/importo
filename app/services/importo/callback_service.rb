@@ -8,7 +8,7 @@ module Importo
     end
 
     def perform
-      Importo.config.import_callback(context.import, context.callback)
+      Importo.config.import_callback(context.import, context.callback.to_sym)
     end
   end
 end
