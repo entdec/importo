@@ -26,7 +26,7 @@ class ProductsImporter < ApplicationImporter
   column attribute: :id
 
   # attributes
-  column attribute: :name
+  column attribute: :name, required: true
   column attribute: :description, strip_tags: false
   column attribute: :number, export: { format: 'text', value: ->(record) { record.number }, example: 'FLAG-NLD-001' }, style: {b: true}
   column attribute: :expires_on, export: { format: 'dd/mm/yyyy h:mm'}
