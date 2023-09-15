@@ -41,6 +41,8 @@ module Importable
         value = proc_result if proc_result
       end
       value ||= col.options[:default]
+      value ||= "" if col.options[:text_cell_to_blank]
+
 
       row[k] = value
     end
@@ -71,7 +73,7 @@ module Importable
 
     cols_to_populate.each do |k, col|
       attr = col.options[:attribute]
-      attributes = set_attribute(attributes, attr, row[k]) if row[k].present?
+      attributes = set_attribute(attributes, attr, row[k]) unless row[k].nil?
     end
 
     result.assign_attributes(attributes)
@@ -102,8 +104,11 @@ module Importable
     results = loop_data_rows do |attributes, index|
       process_data_row(attributes, index)
     end
-    @import.result.attach(io: results_file, filename: @import.importer.file_name('results'),
-                          content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+    blob = ActiveStorage::Blob.create_and_upload!(io: results_file, filename: @import.importer.file_name('results'),
+                                                  content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    @import.result.attach(blob)
 
     @import.result_message = I18n.t('importo.importers.result_message', nr: results.compact.count, of: results.count,
                                                                         start_row: data_start_row)
@@ -128,6 +133,7 @@ module Importable
   end
 
   def process_data_row(attributes, index)
+
     record = nil
     row_hash = Digest::SHA256.base64digest(attributes.inspect)
     duplicate_import = nil
@@ -139,6 +145,7 @@ module Importable
         record = build(attributes)
         record.validate!
         before_save(record, attributes)
+
         record.save!
         after_save(record, attributes)
         duplicate_import = duplicate?(row_hash, record.id)

@@ -9,6 +9,7 @@ nl:
         value: Waarde
         explanation: Doeleinde
         example: Voorbeeld
+        enclosed_value: Wanneer de waarde tussen aanhalingstekens (") staat, wordt de waarde binnenin gebruikt als de waarde. Dus "" zal resulteren in een lege waarde.
     imports:
       index:
         title: Import resultaten

@@ -43,6 +43,13 @@ module ImporterDsl
       @model
     end
 
+    ##
+    # A flag to filter the scope when processing duplicate rows.
+    # The default scope is to check all previously imported rows.
+    # - +true+ to indicate we allow all duplicate rows to be imported.
+    # - +:last+ to indicate that we should only check the last imported row with the same id.
+    #
+    # @param [Boolean, Symbol] duplicates flag to indicate wh
     def allow_duplicates(duplicates)
       @allow_duplicates = duplicates if duplicates
       @allow_duplicates
