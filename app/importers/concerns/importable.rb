@@ -18,11 +18,7 @@ module Importable
 
     row.instance_variable_set('@importo_converted_values', true)
 
-    cols_to_populate = columns.select do |_, v|
-      v.options[:attribute].present?
-    end
-
-    cols_to_populate.each do |k, col|
+    columns.each do |k, col|
       attr = col.options[:attribute]
 
       row[k] = import.column_overrides[col.attribute] if import.column_overrides[col.attribute]
