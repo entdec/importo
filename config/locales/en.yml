@@ -13,7 +13,6 @@ en:
         value: Value
         explanation: Purpose
         example: Example
-        enclosed_value: When the value is enclosed in quotes (") the value inside will be used as the value. Thus "" will result in an empty value.
     imports:
       index:
         title: Import results

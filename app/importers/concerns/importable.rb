@@ -37,8 +37,6 @@ module Importable
         value = proc_result if proc_result
       end
       value ||= col.options[:default]
-      value ||= "" if col.options[:text_cell_to_blank]
-
 
       row[k] = value
     end
@@ -69,7 +67,7 @@ module Importable
 
     cols_to_populate.each do |k, col|
       attr = col.options[:attribute]
-      attributes = set_attribute(attributes, attr, row[k]) unless row[k].nil?
+      attributes = set_attribute(attributes, attr, row[k]) if row[k].present?
     end
 
     result.assign_attributes(attributes)
@@ -129,7 +127,6 @@ module Importable
   end
 
   def process_data_row(attributes, index)
-
     record = nil
     row_hash = Digest::SHA256.base64digest(attributes.inspect)
     duplicate_import = nil
@@ -141,7 +138,6 @@ module Importable
         record = build(attributes)
         record.validate!
         before_save(record, attributes)
-
         record.save!
         after_save(record, attributes)
         duplicate_import = duplicate?(row_hash, record.id)
