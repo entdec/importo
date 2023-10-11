@@ -19,6 +19,8 @@ module Importable
     row.instance_variable_set('@importo_converted_values', true)
 
     columns.each do |k, col|
+      next if col.proc.blank? || row[k].nil?
+
       attr = col.options[:attribute]
 
       row[k] = import.column_overrides[col.attribute] if import.column_overrides[col.attribute]
@@ -26,7 +28,7 @@ module Importable
       if col.collection
         # see if the value is part of the collection  of (name, id) pairs, error if not.
         value = col.collection.find { |item| item.last == row[k] || item.first == row[k] }&.last
-        raise StandardError, "#{row[k]} is not a valid value for #{col.name}" if value.nil? && row[k].present?
+        raise StandardError, "#{row[k]} is not a valid value for #{col.name}" if value.nil? && !row[k].nil?
       else
         value ||= row[k]
       end
@@ -67,7 +69,7 @@ module Importable
 
     cols_to_populate.each do |k, col|
       attr = col.options[:attribute]
-      attributes = set_attribute(attributes, attr, row[k]) if row[k].present?
+      attributes = set_attribute(attributes, attr, row[k]) unless row[k].nil?
     end
 
     result.assign_attributes(attributes)
