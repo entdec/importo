@@ -69,7 +69,14 @@ module Importable
 
     cols_to_populate.each do |k, col|
       attr = col.options[:attribute]
-      attributes = set_attribute(attributes, attr, row[k]) if row.key? k
+
+      next unless row.key? k
+
+      attributes = if !row[k].present? && !col.options[:default].nil?
+                     set_attribute(attributes, attr, col.options[:default])
+                   else
+                     set_attribute(attributes, attr, row[k])
+                   end
     end
 
     result.assign_attributes(attributes)
@@ -100,7 +107,6 @@ module Importable
     results = loop_data_rows do |attributes, index|
       process_data_row(attributes, index)
     end
-
 
     blob = ActiveStorage::Blob.create_and_upload!(io: results_file, filename: @import.importer.file_name('results'),
                                                   content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
