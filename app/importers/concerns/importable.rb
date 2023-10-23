@@ -69,7 +69,7 @@ module Importable
 
     cols_to_populate.each do |k, col|
       attr = col.options[:attribute]
-      attributes = set_attribute(attributes, attr, row[k]) if row.key? k
+      attributes = set_attribute(attributes, attr, row[k]) unless row[k].nil?
     end
 
     result.assign_attributes(attributes)
