@@ -71,7 +71,7 @@ module Importable
       attr = col.options[:attribute]
 
       next unless row.key? k
-
+      next if row[k].nil?
       attributes = if !row[k].present? && !col.options[:default].nil?
                      set_attribute(attributes, attr, col.options[:default])
                    else
