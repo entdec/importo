@@ -2,7 +2,7 @@ en:
   helpers:
     submit:
       importo/import:
-        create: "Import"
+        create: "Preview"
   importo:
     sheet:
       results:
@@ -14,6 +14,8 @@ en:
         explanation: Purpose
         example: Example
     imports:
+      cancel:
+        success: "Import canceled for id %{id}, Redirecting to new"
       index:
         title: Import results
       new:
@@ -25,6 +27,14 @@ en:
         import: Import %{kind}
         import_button: Import
       create:
+        flash:
+          no_file: Import failed, please upload a file.
+          error: Import failed, there were problems.
+          success: "Import scheduled with id %{id}, you will get an email with the results."
+      preview:
+        title: "%{kind} Import Preview"
+        cancel: Cancel
+      upload:
         flash:
           no_file: Import failed, please upload a file.
           error: Import failed, there were problems.

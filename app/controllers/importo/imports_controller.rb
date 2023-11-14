@@ -8,6 +8,19 @@ module Importo
       @import = Import.new(kind: params[:kind], locale: I18n.locale)
     end
 
+    def preview
+      @import = Import.find(params[:id])
+      if @import&.original&.attachment.present?
+        @original = Tempfile.new(['ActiveStorage', @import.original.filename.extension_with_delimiter])
+        @original.binmode
+        @import.original.download { |block| @original.write(block) }
+        @original.flush
+        @original.rewind
+        sheet =  Roo::Excelx.new(@original.path)
+        @sheet_data = sheet.parse(headers: true)
+      end
+      redirect_to action: :new unless  @sheet_data
+    end
     def create
       unless import_params
         @import = Import.new(kind: params[:kind], locale: I18n.locale)
@@ -16,6 +29,18 @@ module Importo
         return
       end
       @import = Import.new(import_params.merge(locale: I18n.locale, importo_ownable: Importo.config.current_import_owner))
+      if @import.valid?
+        @import.save!
+        redirect_to action: :preview, id: @import.id, kind: @import.kind
+      else
+        flash[:error] = t('.flash.error')
+        render :new
+      end
+    end
+
+    def upload
+      @import = Import.find(params[:id])
+      @import.confirm! if @import.can_confirm?
       if @import.valid? && @import.schedule!
         flash[:notice] = t('.flash.success', id: @import.id)
         redirect_to action: :index
@@ -23,6 +48,13 @@ module Importo
         flash[:error] = t('.flash.error')
         render :new
       end
+    end
+
+    def cancel
+      @import = Import.find(params[:id])
+      @import.original.purge if @import.concept?
+      flash[:notice] = t('.flash.cancel', id: @import.id)
+      redirect_to action: :new, kind: @import.kind
     end
 
     def undo

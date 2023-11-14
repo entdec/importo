@@ -19,9 +19,10 @@ module Importo
       # Weird loading sequence error, is fixed by the lib/importo/helpers
     end
 
-    state_machine :state, initial: :new do
+    state_machine :state, initial: :concept do
       audit_trail class: ResourceStateTransition, as: :resource if "ResourceStateTransition".safe_constantize
 
+      state :confirmed
       state :importing
       state :scheduled
       state :completed
@@ -36,11 +37,15 @@ module Importo
       after_transition any => :reverting, do: :schedule_revert
 
       event :schedule do
-        transition new: :scheduled
+        transition confirmed: :scheduled
+      end
+
+      event :confirm do
+        transition concept: :confirmed
       end
 
       event :import do
-        transition new: :importing
+        transition confirmed: :importing
         transition scheduled: :importing
         transition failed: :importing
       end
