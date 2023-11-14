@@ -42,6 +42,7 @@ module Importo
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
       import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
       import.import
@@ -53,6 +54,7 @@ module Importo
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
       import.original.attach(io: simple_sheet([%w[id name description], ['aid', '<strong>a</strong>test', '<strong>atest</strong>-description']]), filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
       import.import
@@ -73,6 +75,7 @@ module Importo
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'no_header_account')
       import.original.attach(io: simple_sheet([%w[aid atest atest-description], %w[bid btest btest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
       import.import
@@ -129,6 +132,7 @@ module Importo
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'translated_account', locale: 'nl')
       import.original.attach(io: simple_sheet([%w[], %w[a b c], ['Record ID', 'Naam', 'Omschrijving'], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
       import.import
@@ -140,6 +144,7 @@ module Importo
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'translated_account')
       import.original.attach(io: simple_sheet([%w[], %w[a b c], ['Record ID', 'Naam', 'Omschrijving'], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
       import.import
@@ -151,6 +156,7 @@ module Importo
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'translated_account')
       import.original.attach(io: simple_sheet([%w[], %w[a b c], ['Record ID', 'Naam', 'Description'], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
       import.import

@@ -16,16 +16,16 @@
       /       | Add user
       .mt-8.flow-root
         .-mx-4.-my-2.overflow-x-auto.sm:-mx-6.lg:-mx-8
-          .inline-block.min-w-full.py-2.align-middle
-            table.min-w-full.divide-y.divide-gray-300
-              thead
+          .inline-block.min-w-full.py-2.align-middle.bg-white.dark:bg-gray-900.dark:border-gray-700
+            table.min-w-full.divide-y.divide-gray-20.border-2
+              thead.bg-gray-50
                 tr
                   - @sheet_data.first.keys.each_with_index do |header, index|
-                    th.px-3.py-3.5.text-left.text-sm.font-semibold.text-gray-900[scope="col"]
+                    th.px-3.py-3.5.text-left.text-sm.font-semibold.border-2.text-gray-600[scope="col"]
                       = header
               tbody.divide-y.divide-gray-200.bg-white
                 - @sheet_data.reject! { |h| h.keys == h.values }&.each do |h|
                   tr
                     - h.each do |key, value|
-                      td.whitespace-nowrap.px-3.py-4.text-sm.text-gray-500
+                      td.whitespace-nowrap.px-3.py-4.text-sm.text-gray-500.border-2
                         = value
