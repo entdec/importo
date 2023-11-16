@@ -143,7 +143,6 @@ module Importable
       ActiveRecord::Base.transaction(requires_new: true) do
         register_result(index, hash: row_hash, state: :processing)
         record = build(attributes)
-        binding.pry
         record.validate!
         before_save(record, attributes)
         record.save!
