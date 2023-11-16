@@ -71,7 +71,7 @@ module Importable
       attr = col.options[:attribute]
 
       next unless row.key? k
-      next if (row[k].nil? && col.options[:default].nil?)
+      next if (!row[k].present? && col.options[:default].nil?)
       attributes = if !row[k].present? && !col.options[:default].nil?
                      set_attribute(attributes, attr, col.options[:default])
                    else
@@ -142,8 +142,8 @@ module Importable
     begin
       ActiveRecord::Base.transaction(requires_new: true) do
         register_result(index, hash: row_hash, state: :processing)
-
         record = build(attributes)
+        binding.pry
         record.validate!
         before_save(record, attributes)
         record.save!
