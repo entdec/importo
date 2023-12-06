@@ -18,11 +18,9 @@ module Importable
 
     row.instance_variable_set('@importo_converted_values', true)
 
-    cols_to_populate = columns.select do |_, v|
-      v.options[:attribute].present?
-    end
+    columns.each do |k, col|
+      next if col.proc.blank? || row[k].nil?
 
-    cols_to_populate.each do |k, col|
       attr = col.options[:attribute]
 
       row[k] = import.column_overrides[col.attribute] if import.column_overrides[col.attribute]
@@ -30,7 +28,7 @@ module Importable
       if col.collection
         # see if the value is part of the collection  of (name, id) pairs, error if not.
         value = col.collection.find { |item| item.last == row[k] || item.first == row[k] }&.last
-        raise StandardError, "#{row[k]} is not a valid value for #{col.name}" if value.nil? && row[k].present?
+        raise StandardError, "#{row[k]} is not a valid value for #{col.name}" if value.nil? && !row[k].nil?
       else
         value ||= row[k]
       end
@@ -57,12 +55,12 @@ module Importable
     row = convert_values(row)
 
     result = if record
-              record
-            else
-              raise 'No model set' unless model
+               record
+             else
+               raise 'No model set' unless model
 
-              model.find_or_initialize_by(id: row['id'])
-            end
+               model.find_or_initialize_by(id: row['id'])
+             end
 
     attributes = {}
     cols_to_populate = columns.select do |_, v|
@@ -71,7 +69,15 @@ module Importable
 
     cols_to_populate.each do |k, col|
       attr = col.options[:attribute]
-      attributes = set_attribute(attributes, attr, row[k]) if row[k].present?
+
+      next unless row.key? k
+      next if !row[k].present? && col.options[:default].nil?
+
+      attributes = if !row[k].present? && !col.options[:default].nil?
+                     set_attribute(attributes, attr, col.options[:default])
+                   else
+                     set_attribute(attributes, attr, row[k])
+                   end
     end
 
     result.assign_attributes(attributes)
@@ -102,19 +108,22 @@ module Importable
     run_callbacks(:import) do
     end
 
-    signal = Signum::info(@import.importer.current_user, {title: "", text: "Importing #{@import.original.filename}", sticky: true, total: @import.importer.send(:row_count)})
+    signal = Signum.info(@import.importer.current_user,
+                         { title: '', text: "Importing #{@import.original.filename}", sticky: true,
+                           total: @import.importer.send(:row_count) })
     Signum::SendSignalsJob.perform_now(signal, true)
 
     batch = Sidekiq::Batch.new
-    batch.description = "Import Batch"
+    batch.description = 'Import Batch'
     # this will call "ImportJobCallback.new.on_complete"
-    batch.on(:complete, Importo::ImportJobCallback, import_id: self.import.id, signal_id: signal.id)
+    batch.on(:complete, Importo::ImportJobCallback, import_id: import.id, signal_id: signal.id)
     # You can also use Class#method notation which is like calling "AnotherClass.new.method"
-    #batch.on(:success, 'AnotherClass#method', 'uid' => current_user.id)
+    # batch.on(:success, 'AnotherClass#method', 'uid' => current_user.id)
 
     batch.jobs do
       loop_data_rows do |attributes, index|
-        Importo::ImportJob.set(queue: Importo.config.queue_name).perform_async(attributes.to_h, index, self.import.id, signal.id)
+        Importo::ImportJob.set(queue: Importo.config.queue_name).perform_async(attributes.to_h, index, import.id,
+                                                                               signal.id)
       end
     end
 
@@ -137,7 +146,6 @@ module Importable
     begin
       ActiveRecord::Base.transaction(requires_new: true) do
         register_result(index, hash: row_hash, state: :processing)
-
         record = build(attributes)
         record.validate!
         before_save(record, attributes)
@@ -152,7 +160,7 @@ module Importable
     rescue Importo::DuplicateRowError
       record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
       register_result(index, id: record_id, state: :duplicate,
-        message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
+                             message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
       nil
     rescue StandardError => e
       errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
