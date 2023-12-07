@@ -11,6 +11,10 @@ class TranslatedAccountImporter < Importo::BaseImporter
   column attribute: 'id'
   column attribute: 'name'
   column attribute: 'description'
+
+  def current_user
+    User.find_or_create_by(name: 'test')
+  end
 end
 
 class AccountImporter < Importo::BaseImporter
@@ -22,6 +26,10 @@ class AccountImporter < Importo::BaseImporter
   column attribute: 'id'
   column attribute: 'name'
   column attribute: 'description', strip_tags: false
+
+  def current_user
+    User.find_or_create_by(name: 'test')
+  end
 end
 
 class NoHeaderAccountImporter < Importo::BaseImporter
@@ -34,17 +42,29 @@ class NoHeaderAccountImporter < Importo::BaseImporter
   column attribute: 'id'
   column attribute: 'name'
   column attribute: 'description'
+
+  def current_user
+    User.find_or_create_by(name: 'test')
+  end
 end
 
 module Importo
   class ImportTest < ActiveSupport::TestCase
+    include ActiveJob::TestHelper
+    
     test 'imports an excel file' do
       import = Import.new(importo_ownable: Account.create(name: 'test'), kind: 'account')
       import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
+      
       import.schedule
       assert_equal 'scheduled', import.state
+      
       import.import
+      Importo::ImportJobCallback.new.on_complete(nil, import_id: import.id)
+
+      #perform_enqueued_jobs
+      #Sidekiq::Worker.drain_all
 
       assert_import(import)
     end
@@ -55,7 +75,9 @@ module Importo
       assert import.save, import.errors.messages
       import.schedule
       assert_equal 'scheduled', import.state
+
       import.import
+      Importo::ImportJobCallback.new.on_complete(nil, import_id: import.id)
 
       assert_nothing_raised do
         assert_difference -> { Account.count }, 1 do
@@ -75,7 +97,9 @@ module Importo
       assert import.save
       import.schedule
       assert_equal 'scheduled', import.state
+      
       import.import
+      Importo::ImportJobCallback.new.on_complete(nil, import_id: import.id)
 
       assert_nothing_raised do
         assert_difference -> { Account.count }, 2 do
@@ -131,7 +155,9 @@ module Importo
       assert import.save, import.errors.messages
       import.schedule
       assert_equal 'scheduled', import.state
+      
       import.import
+      Importo::ImportJobCallback.new.on_complete(nil, import_id: import.id)
 
       assert_import(import)
     end
@@ -142,7 +168,9 @@ module Importo
       assert import.save, import.errors.messages
       import.schedule
       assert_equal 'scheduled', import.state
+      
       import.import
+      Importo::ImportJobCallback.new.on_complete(nil, import_id: import.id)
 
       assert_import(import)
     end
@@ -153,7 +181,9 @@ module Importo
       assert import.save, import.errors.messages
       import.schedule
       assert_equal 'scheduled', import.state
+      
       import.import
+      Importo::ImportJobCallback.new.on_complete(nil, import_id: import.id)
 
       assert_import(import)
     end

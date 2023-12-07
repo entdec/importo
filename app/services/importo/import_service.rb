@@ -3,8 +3,6 @@
 module Importo
   class ImportService < ApplicationService
     def perform
-      sleep 1
-
       context.import.import!
       context.import.importer.import!
     rescue StandardError

@@ -71,7 +71,8 @@ module Importable
       attr = col.options[:attribute]
 
       next unless row.key? k
-      next if (!row[k].present? && col.options[:default].nil?)
+      next if !row[k].present? && col.options[:default].nil?
+
       attributes = if !row[k].present? && !col.options[:default].nil?
                      set_attribute(attributes, attr, col.options[:default])
                    else
@@ -104,17 +105,27 @@ module Importable
   def import!
     raise ArgumentError, 'Invalid data structure' unless structure_valid?
 
-    results = loop_data_rows do |attributes, index|
-      process_data_row(attributes, index)
+    run_callbacks(:import) do
     end
 
-    blob = ActiveStorage::Blob.create_and_upload!(io: results_file, filename: @import.importer.file_name('results'),
-                                                  content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    @import.result.attach(blob)
+    signal = Signum.info(@import.importer.current_user,
+                         { title: '', text: "Importing #{@import.original.filename}", sticky: true,
+                           total: @import.importer.send(:row_count) })
+    Signum::SendSignalsJob.perform_now(signal, true)
 
-    @import.result_message = I18n.t('importo.importers.result_message', nr: results.compact.count, of: results.count,
-                                                                        start_row: data_start_row)
-    @import.complete!
+    batch = Sidekiq::Batch.new
+    batch.description = 'Import Batch'
+    # this will call "ImportJobCallback.new.on_complete"
+    batch.on(:complete, Importo::ImportJobCallback, import_id: import.id, signal_id: signal.id)
+    # You can also use Class#method notation which is like calling "AnotherClass.new.method"
+    # batch.on(:success, 'AnotherClass#method', 'uid' => current_user.id)
+
+    batch.jobs do
+      loop_data_rows do |attributes, index|
+        Importo::ImportJob.set(queue: Importo.config.queue_name).perform_async(JSON.dump(attributes), index,
+                                                                               import.id, signal.id)
+      end
+    end
 
     true
   rescue StandardError => e
@@ -125,16 +136,9 @@ module Importable
     false
   end
 
-  private
-
-  ##
-  # Overridable failure method
-  #
-  def failure(_row, _record, index, exception)
-    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
-  end
-
   def process_data_row(attributes, index)
+    run_callbacks(:row_import) do
+    end
     record = nil
     row_hash = Digest::SHA256.base64digest(attributes.inspect)
     duplicate_import = nil
@@ -165,6 +169,15 @@ module Importable
       register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
       nil
     end
+  end
+
+  private
+
+  ##
+  # Overridable failure method
+  #
+  def failure(_row, _record, index, exception)
+    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
   end
 
   def set_attribute(hash, path, value)
