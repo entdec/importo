@@ -27,7 +27,7 @@ en:
       create:
         flash:
           no_file: Import failed, please upload a file.
-          error: Import failed, there were problems.
+          error: Import failed, there were problems %{error}.
           success: "Import scheduled with id %{id}, you will get an email with the results."
     errors:
       structure_invalid: "The structure is invalid, these are the invalid headers: %{invalid_headers}"
