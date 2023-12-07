@@ -122,8 +122,8 @@ module Importable
 
     batch.jobs do
       loop_data_rows do |attributes, index|
-        Importo::ImportJob.set(queue: Importo.config.queue_name).perform_async(attributes.to_h, index, import.id,
-                                                                               signal.id)
+        Importo::ImportJob.set(queue: Importo.config.queue_name).perform_async(JSON.dump(attributes), index,
+                                                                               import.id, signal.id)
       end
     end
 

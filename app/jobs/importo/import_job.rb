@@ -3,7 +3,8 @@ module Importo
     include Sidekiq::Job
 
     def perform(attributes, index, import_id, signal_id)
-      attributes = attributes.deep_symbolize_keys if !Rails.env.test?
+      attributes = JSON.load(attributes).deep_symbolize_keys if attributes.is_a?(String)
+
       import = Import.find(import_id)
       record = import.importer.process_data_row(attributes, index)
 
@@ -13,10 +14,10 @@ module Importo
 
       Signum::SendSignalsJob.perform_now(signal, false)
 
-      #puts "Working within batch #{bid}"
-      #batch.jobs do
-        # add more jobs
-      #end
+      # puts "Working within batch #{bid}"
+      # batch.jobs do
+      # add more jobs
+      # end
     end
   end
 end
