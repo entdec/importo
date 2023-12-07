@@ -11,16 +11,16 @@ module Importo
     def create
       unless import_params
         @import = Import.new(kind: params[:kind], locale: I18n.locale)
-        flash[:error] = t('.flash.no_file')
+        Signum.error(Current.user, text: t('.flash.no_file'))
         render :new
         return
       end
       @import = Import.new(import_params.merge(locale: I18n.locale, importo_ownable: Importo.config.current_import_owner))
       if @import.valid? && @import.schedule!
-        flash[:notice] = t('.flash.success', id: @import.id)
+        Signum.success(Current.user, text: t('.flash.success', id: @import.id))
         redirect_to action: :index
       else
-        flash[:error] = t('.flash.error')
+        Signum.error(Current.user, text: t('.flash.error', error: @import.errors&.full_messages&.join('.')))
         render :new
       end
     end
