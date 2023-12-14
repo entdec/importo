@@ -109,21 +109,21 @@ module Importable
     end
 
     signal = Signum.info(@import.importer.current_user,
-                         { title: '', text: "Importing #{@import.original.filename}", sticky: true,
+                         { title: '', text: "Scheduling import of #{@import.original.filename}", sticky: true,
                            total: @import.importer.send(:row_count) })
     Signum::SendSignalsJob.perform_now(signal, true)
 
     batch = Sidekiq::Batch.new
     batch.description = 'Import Batch'
-    # this will call "ImportJobCallback.new.on_complete"
-    batch.on(:complete, Importo::ImportJobCallback, import_id: import.id, signal_id: signal.id)
-    # You can also use Class#method notation which is like calling "AnotherClass.new.method"
+    # this will call "ImportJobCallback.new.on_complete" when all jobs are executed at least once irrespective of failure or success, not ideal with when we have set retry on a job
+    # batch.on(:complete, Importo::ImportJobCallback, import_id: import.id, signal_id: signal.id)
+    # this will call "ImportJobCallback.new.on_success" when all jobs are successfully executed
     # batch.on(:success, 'AnotherClass#method', 'uid' => current_user.id)
 
     batch.jobs do
       loop_data_rows do |attributes, index|
-        Importo::ImportJob.set(queue: Importo.config.queue_name).perform_async(JSON.dump(attributes), index,
-                                                                               import.id, signal.id)
+        Importo::ImportJob.perform_async(JSON.dump(attributes), index,
+                                         import.id, signal.id)
       end
     end
 
@@ -136,7 +136,7 @@ module Importable
     false
   end
 
-  def process_data_row(attributes, index)
+  def process_data_row(attributes, index, last_attempt: true)
     run_callbacks(:row_import) do
     end
     record = nil
@@ -163,6 +163,8 @@ module Importable
                              message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
       nil
     rescue StandardError => e
+      raise e if e.is_a?(ActiveRecord::RecordNotFound) && !last_attempt
+
       errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
       error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
       failure(attributes, record, index, e)
