@@ -5,7 +5,7 @@ Importo.setup do |config|
   config.admin_authentication_module = 'Authenticated'
 
   # Current import owner
-  config.current_import_owner = -> { User.current }
+  config.current_import_owner = -> { Current.user }
 
   config.queue_name = :import
 end
