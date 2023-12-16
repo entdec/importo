@@ -11,16 +11,16 @@ module Importo
     def create
       unless import_params
         @import = Import.new(kind: params[:kind], locale: I18n.locale)
-        flash[:error] = t('.flash.no_file')
+        Signum.error(Current.user, text: t('.flash.no_file'))
         render :new
         return
       end
-      @import = Import.new(import_params.merge(locale: I18n.locale, importo_ownable: Importo.config.current_import_owner))
+      @import = Import.new(import_params.merge(locale: I18n.locale,
+                                               importo_ownable: Importo.config.current_import_owner))
       if @import.valid? && @import.schedule!
-        flash[:notice] = t('.flash.success', id: @import.id)
         redirect_to action: :index
       else
-        flash[:error] = t('.flash.error')
+        Signum.error(Current.user, text: t('.flash.error', error: @import.errors&.full_messages&.join('.')))
         render :new
       end
     end
@@ -44,12 +44,14 @@ module Importo
 
     def sample
       import = Import.new(kind: params[:kind], locale: I18n.locale)
-      send_data import.importer.sample_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: import.importer.file_name('sample')
+      send_data import.importer.sample_file.read,
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: import.importer.file_name('sample')
     end
 
     def export
       import = Import.new(kind: params[:kind], locale: I18n.locale)
-      send_data import.importer.export_file.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: import.importer.file_name('export')
+      send_data import.importer.export_file.read,
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: import.importer.file_name('export')
     end
 
     def index
@@ -59,7 +61,8 @@ module Importo
     private
 
     def import_params
-      params.require(:import).permit(:original, :kind, :column_overrides, column_overrides: params.dig(:import, :column_overrides)&.keys)
+      params.require(:import).permit(:original, :kind, :column_overrides,
+                                     column_overrides: params.dig(:import, :column_overrides)&.keys)
     end
   end
 end

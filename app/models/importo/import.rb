@@ -7,6 +7,7 @@ module Importo
     belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
+    has_many :results, class_name: 'Importo::Result', dependent: :delete_all
 
     validates :kind, presence: true
     validates :original, presence: true
@@ -20,7 +21,7 @@ module Importo
     end
 
     state_machine :state, initial: :new do
-      audit_trail class: ResourceStateTransition, as: :resource if "ResourceStateTransition".safe_constantize
+      audit_trail class: ResourceStateTransition, as: :resource if 'ResourceStateTransition'.safe_constantize
 
       state :importing
       state :scheduled
@@ -29,7 +30,7 @@ module Importo
       state :reverted
 
       after_transition any => any do |imprt, transition|
-        CallbackService.perform_later(import: imprt&.id, callback: transition.to_name)
+        imprt.importer.state_changed(imprt, transition)
       end
 
       after_transition any => :scheduled, do: :schedule_import
@@ -71,8 +72,12 @@ module Importo
     end
 
     def content_validator
-      errors.add(:original, I18n.t('importo.errors.structure_invalid', invalid_headers: importer.invalid_header_names.join(', '))) unless importer.structure_valid?
-    rescue => e
+      unless importer.structure_valid?
+        errors.add(:original,
+                   I18n.t('importo.errors.structure_invalid',
+                          invalid_headers: importer.invalid_header_names.join(', ')))
+      end
+    rescue StandardError => e
       errors.add(:original, I18n.t('importo.errors.parse_error', error: e.message))
     end
 

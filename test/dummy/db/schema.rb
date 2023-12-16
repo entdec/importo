@@ -10,8 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_09_08_071920) do
-
+ActiveRecord::Schema[7.0].define(version: 2023_05_15_115350) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -20,8 +19,8 @@ ActiveRecord::Schema.define(version: 2021_09_08_071920) do
   create_table "accounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name"
     t.string "description"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
   end
 
   create_table "active_storage_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -29,7 +28,7 @@ ActiveRecord::Schema.define(version: 2021_09_08_071920) do
     t.string "record_type", null: false
     t.uuid "record_id", null: false
     t.uuid "blob_id", null: false
-    t.datetime "created_at", null: false
+    t.datetime "created_at", precision: nil, null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
@@ -41,7 +40,7 @@ ActiveRecord::Schema.define(version: 2021_09_08_071920) do
     t.text "metadata"
     t.bigint "byte_size", null: false
     t.string "checksum", null: false
-    t.datetime "created_at", null: false
+    t.datetime "created_at", precision: nil, null: false
     t.string "service_name", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
@@ -59,12 +58,45 @@ ActiveRecord::Schema.define(version: 2021_09_08_071920) do
     t.string "state"
     t.string "file_name"
     t.string "result_message"
-    t.jsonb "results"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.string "locale", default: "en"
     t.jsonb "column_overrides", default: {}, null: false
   end
 
+  create_table "importo_results", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "row_index"
+    t.uuid "import_id", null: false
+    t.jsonb "details", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["import_id"], name: "index_importo_results_on_import_id"
+  end
+
+  create_table "signum_signals", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "state", default: "pending"
+    t.string "signalable_type", null: false
+    t.uuid "signalable_id", null: false
+    t.string "kind", default: "notice"
+    t.boolean "sticky"
+    t.string "icon"
+    t.string "title"
+    t.text "text"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.jsonb "metadata"
+    t.integer "total"
+    t.integer "count"
+    t.index ["signalable_type", "signalable_id"], name: "index_signum_signals_on_signalable_type_and_signalable_id"
+  end
+
+  create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name"
+    t.string "description"
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+  end
+
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "importo_results", "importo_imports", column: "import_id"
 end

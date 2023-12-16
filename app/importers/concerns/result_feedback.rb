@@ -72,13 +72,9 @@ module ResultFeedback
   private
 
   def register_result(index, details)
-    @import.results ||= []
-    i = @import.results.index { |data| data[:row] == index }
-    if i
-      @import.results[i].merge!(details)
-    else
-      @import.results << details.merge(row: index)
-    end
+    r = @import.results.find_or_create_by(row_index: index)
+    r.details = details
+    r.save
   end
 
   def results(index)
@@ -86,6 +82,6 @@ module ResultFeedback
   end
 
   def result(index, field)
-    (@import.results.find { |result| result[:row] == index } || {}).fetch(field, nil)
+    (@import.results.find_by(row_index: index)&.details || {}).fetch(field.to_s, nil)
   end
 end
