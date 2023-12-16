@@ -27,7 +27,7 @@ module Importo
       @admin_can_destroy = ->(_import) { false }
 
       # Extra links relevant for this import: { link_name: { icon: 'far fa-..', url: '...' } }
-      @admin_extra_links = ->(_import) { }
+      @admin_extra_links = ->(_import) { [] }
     end
 
     # Config: logger [Object].
