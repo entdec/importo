@@ -108,10 +108,12 @@ module Importable
     run_callbacks(:import) do
     end
 
-    signal = Signum.info(@import.importer.current_user,
+    # FIXME: importo_ownable may not be signable
+    signal = Signum.info( @import.importo_ownable,
                          { title: '', text: "Scheduling import of #{@import.original.filename}", sticky: true,
                            total: @import.importer.send(:row_count) })
-    Signum::SendSignalsJob.perform_now(signal, true)
+    # FIXME: Why is this needed?
+    Signum::SendSignalsJob.perform_now(signal, true) if signal
 
     batch = Sidekiq::Batch.new
     batch.description = 'Import Batch'
