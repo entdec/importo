@@ -90,6 +90,9 @@ Add this line to your application's Gemfile:
 gem 'importo'
 ```
 
+Importo depends on Sidekiq Pro's batch functionality, 
+though you can use [sidekiq-batch](https://github.com/entdec/sidekiq-batch) as a drop-in for that.
+
 And then execute:
 
 ```bash
