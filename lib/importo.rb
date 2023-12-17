@@ -17,16 +17,9 @@ require_relative 'importo/import_helpers'
 require_relative 'importo/configuration'
 
 module Importo
+  extend Configurable
+
   class Error < StandardError; end
 
   class DuplicateRowError < Error; end
-
-  class << self
-    attr_reader :config
-
-    def setup
-      @config = Configuration.new
-      yield config
-    end
-  end
 end
