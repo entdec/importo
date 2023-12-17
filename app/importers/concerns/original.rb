@@ -114,7 +114,9 @@ module Original
   def loop_data_rows
     (data_start_row..spreadsheet.last_row).map do |index|
       row = cells_from_row(index, false)
+
       attributes = Hash[[attribute_names, row].transpose].compact_blank
+
       attributes = attributes.map do |column, value|
         value = strip_tags(value.strip) if value.respond_to?(:strip) && columns[column]&.options[:strip_tags] != false
         [column, value]
@@ -134,6 +136,8 @@ module Original
   end
 
   def attribute_names
+    return columns.keys if !includes_header?
+
     translated_header_names = cells_from_row(header_row)
     @header_names = translated_header_names.map do |name|
       col_for(name)&.first
