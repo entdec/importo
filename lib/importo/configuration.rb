@@ -27,6 +27,7 @@ module Importo
   class Configuration
     include Options
 
+    option :logger, default: Rails.logger
     option :admin_authentication_module
     option :base_controller, default: "::ApplicationController"
     option :base_service, default: "::ApplicationService"
