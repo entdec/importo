@@ -26,6 +26,6 @@
 
 .grid.grid-cols-1.gap-4.sm:grid-cols-3.mt-4
   .col-span-3.sm:col-span-3
-    = sts.card :importo_imports, title: "#{@import.kind} imports", icon: 'fad fa-file-import', content_padding: false do |card|
+    = sts.card :importo_imports, title: "#{@import.kind.humanize} imports", icon: 'fad fa-file-import', content_padding: false do |card|
       = card.table(:importo_imports, parameters: { kind: @import.kind }, custom_views: false)
 
