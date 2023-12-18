@@ -34,7 +34,7 @@ module Importo
     option :current_import_owner, default: lambda {}
     option :queue_name, default: :import
 
-    option :admin_visible_imports, default: lambda { Importo::Import.where(importo_ownable: current_import_owner) }
+    option :admin_visible_imports, default: lambda { Importo::Import.where(importo_ownable: Importo.config.current_import_owner) }
     option(:admin_can_destroy,
            default: lambda do |import|
              false

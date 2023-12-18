@@ -16,7 +16,7 @@ module Importo
         return
       end
       @import = Import.new(import_params.merge(locale: I18n.locale,
-                                               importo_ownable: Importo.config.current_import_owner))
+                                               importo_ownable: Importo.config.current_import_owner.call))
       if @import.valid? && @import.schedule!
         redirect_to action: :index
       else
@@ -26,7 +26,7 @@ module Importo
     end
 
     def undo
-      @import = Import.where(importo_ownable: Importo.config.current_import_owner).find(params[:id])
+      @import = Import.where(importo_ownable: Importo.config.current_import_owner.call).find(params[:id])
       if @import.can_revert? && @import.revert
         redirect_to action: :index, notice: 'Import reverted'
       else
@@ -35,8 +35,8 @@ module Importo
     end
 
     def destroy
-      @import = Import.where(importo_ownable: Importo.config.current_import_owner).find(params[:id])
-      redirect_to(action: :index, alert: 'Not allowed') && return unless Importo.config.admin_can_destroy(@import)
+      @import = Import.where(importo_ownable: Importo.config.current_import_owner.call).find(params[:id])
+      redirect_to(action: :index, alert: 'Not allowed') && return unless Importo.config.admin_can_destroy.call(@import)
 
       @import.destroy
       redirect_to action: :index
@@ -55,7 +55,7 @@ module Importo
     end
 
     def index
-      @imports = Importo.config.admin_visible_imports.order(created_at: :desc).limit(50)
+      @imports = Importo.config.admin_visible_imports.call.order(created_at: :desc).limit(50)
     end
 
     private
