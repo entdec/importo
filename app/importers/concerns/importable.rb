@@ -67,6 +67,8 @@ module Importable
       v.options[:attribute].present?
     end
 
+    cols_to_populate = cols_to_populate.deep_symbolize_keys
+
     cols_to_populate.each do |k, col|
       attr = col.options[:attribute]
 
@@ -105,27 +107,16 @@ module Importable
   def import!
     raise ArgumentError, 'Invalid data structure' unless structure_valid?
 
-    run_callbacks(:import) do
-    end
-
-    # FIXME: importo_ownable may not be signable
-    signal = Signum.info( @import.importo_ownable,
-                         { title: '', text: "Scheduling import of #{@import.original.filename}", sticky: true,
-                           total: @import.importer.send(:row_count) })
-    # FIXME: Why is this needed?
-    Signum::SendSignalsJob.perform_now(signal, true) if signal
-
     batch = Sidekiq::Batch.new
-    batch.description = 'Import Batch'
+    batch.description = "#{import.original.filename} - #{import.kind}"
     # this will call "ImportJobCallback.new.on_complete" when all jobs are executed at least once irrespective of failure or success, not ideal with when we have set retry on a job
-    # batch.on(:complete, Importo::ImportJobCallback, import_id: import.id, signal_id: signal.id)
+    # batch.on(:complete, Importo::ImportJobCallback, import_id: import.id)
     # this will call "ImportJobCallback.new.on_success" when all jobs are successfully executed
-    # batch.on(:success, 'AnotherClass#method', 'uid' => current_user.id)
+    batch.on(:success, Importo::ImportJobCallback, import_id: import.id)
 
     batch.jobs do
       loop_data_rows do |attributes, index|
-        Importo::ImportJob.perform_async(JSON.dump(attributes), index,
-                                         import.id, signal.id)
+        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id)
       end
     end
 
@@ -139,8 +130,6 @@ module Importable
   end
 
   def process_data_row(attributes, index, last_attempt: true)
-    run_callbacks(:row_import) do
-    end
     record = nil
     row_hash = Digest::SHA256.base64digest(attributes.inspect)
     duplicate_import = nil
@@ -158,15 +147,33 @@ module Importable
 
         register_result(index, class: record.class.name, id: record.id, state: :success)
       end
+
+      run_callbacks(:row_import) do
+      end
+
       record
     rescue Importo::DuplicateRowError
       record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
       register_result(index, id: record_id, state: :duplicate,
                              message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
+
+      run_callbacks(:row_import) do
+      end
+      nil
+    rescue Importo::RetryError => e
+      raise e unless last_attempt
+
+      run_callbacks(:row_import) do
+      end
+
+      errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
+      error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
+      failure(attributes, record, index, e)
+      register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
       nil
     rescue StandardError => e
-      raise e if e.is_a?(ActiveRecord::RecordNotFound) && !last_attempt
-
+      run_callbacks(:row_import) do
+      end
       errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
       error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
       failure(attributes, record, index, e)

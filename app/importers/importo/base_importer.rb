@@ -11,7 +11,6 @@ module Importo
     include ImporterDsl
     # include ActiveStorage::Downloading
     include ActiveSupport::Callbacks
-    define_callbacks :import
     define_callbacks :row_import
 
     Importo::Import.state_machine.states.map(&:name).each do |state|
@@ -19,7 +18,7 @@ module Importo
     end
 
     delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?,
-            :ignore_header?, :t, to: :class
+             :ignore_header?, :t, to: :class
     attr_reader :import, :blob
 
     def initialize(imprt = nil)
@@ -27,7 +26,7 @@ module Importo
       I18n.locale = import.locale if import&.locale # Should we do this?? here??
     end
 
-    def state_changed(import, transition)
+    def state_changed(_import, transition)
       run_callbacks(transition.to_name) do
       end
     end
@@ -36,7 +35,7 @@ module Importo
       def t(key, options = {})
         if I18n.exists? "importers.#{name.underscore}#{key}".to_sym
           I18n.t(key,
-                options.merge(scope: "importers.#{name.underscore}".to_sym))
+                 options.merge(scope: "importers.#{name.underscore}".to_sym))
         end
       end
     end

@@ -21,4 +21,13 @@ module Importo
   class Error < StandardError; end
 
   class DuplicateRowError < Error; end
+
+  class RetryError < StandardError
+    attr_reader :delay
+
+    def initialize(msg, delay)
+      super(msg)
+      @delay = delay
+    end
+  end
 end
