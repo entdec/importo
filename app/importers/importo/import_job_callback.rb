@@ -11,15 +11,7 @@ module Importo
 
         import.result_message = I18n.t('importo.importers.result_message',
                                        nr: import.results.where('details @> ?', { state: 'success' }.to_json).count, of: import.importer.send(:row_count))
-
         import.complete!
-
-        if import.result.attached? && options['signal_id'].present?
-          signal = Signum::Signal.find(options['signal_id'])
-          signal.update(metadata: { links: [{ title: 'Download',
-                                              url: rails_blob_path(import.result, disposition: 'attachment',
-                                                                                  only_path: true) }] })
-        end
       end
     end
 
