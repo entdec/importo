@@ -172,6 +172,7 @@ module Importable
       register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
       nil
     rescue StandardError => e
+      raise Importo::RetryError.new("ActiveRecord::RecordNotUnique",5) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
       run_callbacks(:row_import) do
       end
       errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
