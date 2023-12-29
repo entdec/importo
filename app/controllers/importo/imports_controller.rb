@@ -35,7 +35,7 @@ module Importo
     end
 
     def destroy
-      @import = Import.where(importo_ownable: Importo.config.current_import_owner.call).find(params[:id])
+      @import = Import.find(params[:id])
       redirect_to(action: :index, alert: 'Not allowed') && return unless Importo.config.admin_can_destroy.call(@import)
 
       @import.destroy
