@@ -115,8 +115,16 @@ module Importable
     batch.on(:success, Importo::ImportJobCallback, import_id: import.id)
 
     batch.jobs do
+      column_with_delay = columns.select{|k,v| v.delay.present?}
       loop_data_rows do |attributes, index|
-        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id)
+        if column_with_delay.present?
+          delay = column_with_delay.map do |k, v|
+            next unless attributes[k].present?
+            v.delay.call(attributes[k])
+          end.compact
+        end
+        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id) if delay.present?
+        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id) unless delay.present?
       end
     end
 
