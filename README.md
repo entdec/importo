@@ -38,6 +38,7 @@ class ProductsImporter < ApplicationImporter
       { filename: File.basename(uri.to_s), io: URI.open(uri) }
     end
   end
+  column name: :kitting_component_product, delay: ->(value) {value.present? ? 5 : 0 }
 
   def export_scope
     Current.account.products
@@ -65,6 +66,7 @@ en:
         number: Number
         description: Description
         images: Images
+        kitting_component_product: Component Product
       # Shown in note in import sheet
       hint:
         id: 36 characters, existing of hexadecimal numbers, separated by dashes
