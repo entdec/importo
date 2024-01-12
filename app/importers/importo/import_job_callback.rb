@@ -11,7 +11,7 @@ module Importo
 
         import.result_message = I18n.t('importo.importers.result_message',
                                        nr: import.results.where('details @> ?', { state: 'success' }.to_json).count, of: import.importer.send(:row_count))
-        import.complete!
+        import.complete! if import.can_complete?
       end
     end
 
