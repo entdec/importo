@@ -142,7 +142,7 @@ module Importable
     row_hash = Digest::SHA256.base64digest(attributes.inspect)
     duplicate_import = nil
 
-    begin
+    run_callbacks(:row_import) do
       ActiveRecord::Base.transaction(requires_new: true) do
         register_result(index, hash: row_hash, state: :processing)
         record = build(attributes)
@@ -155,40 +155,32 @@ module Importable
 
         register_result(index, class: record.class.name, id: record.id, state: :success)
       end
-
-      run_callbacks(:row_import) do
-      end
-
-      record
-    rescue Importo::DuplicateRowError
-      record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
-      register_result(index, id: record_id, state: :duplicate,
-                             message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
-
-      run_callbacks(:row_import) do
-      end
-      nil
-    rescue Importo::RetryError => e
-      raise e unless last_attempt
-
-      run_callbacks(:row_import) do
-      end
-
-      errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
-      error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
-      failure(attributes, record, index, e)
-      register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
-      nil
-    rescue StandardError => e
-      raise Importo::RetryError.new("ActiveRecord::RecordNotUnique",5) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
-      run_callbacks(:row_import) do
-      end
-      errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
-      error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
-      failure(attributes, record, index, e)
-      register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
-      nil
     end
+
+    record
+  rescue Importo::DuplicateRowError
+    record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
+    register_result(index, id: record_id, state: :duplicate,
+                           message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
+
+    run_callbacks(:row_import, :after)
+    nil
+  rescue Importo::RetryError => e
+    raise e unless last_attempt
+
+    errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
+    error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
+    failure(attributes, record, index, e)
+    register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
+    nil
+  rescue StandardError => e
+    raise Importo::RetryError.new("ActiveRecord::RecordNotUnique",5) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
+    errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
+    error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
+    failure(attributes, record, index, e)
+    register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
+    run_callbacks(:row_import, :after)
+    nil
   end
 
   private
