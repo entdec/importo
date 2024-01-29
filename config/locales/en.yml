@@ -16,6 +16,11 @@ en:
     imports:
       index:
         title: Import results
+        card:
+          importo_imports:
+            title: Import results
+            tab:
+              Imports: Imports
       new:
         submit: "Import"
         title: Import
