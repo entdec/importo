@@ -29,6 +29,10 @@ en:
         error_explanation: "The following problems prohibited this import from completing:"
         import: Import %{kind}
         import_button: Import
+        card:
+          importo_imports:
+            tab:
+              importo_imports: Imports
       create:
         flash:
           no_file: Import failed, please upload a file.
