@@ -1,24 +1,31 @@
-= sts.form_for(@import) do |f|
-  = f.input :kind, as: :hidden
-  = sts.card :"importo_imports #{@import.kind}", title: t('.title'), icon: 'fad fa-file-spreadsheet' do |card|
-    - card.action
-      = f.submit
+.grid.grid-cols-1.gap-4.sm:grid-cols-3.mt-4
+  .col-span-3.sm:col-span-3
+    = sts.form_for(@import) do |f|
+      = f.input :kind, as: :hidden
+      = sts.card :"importo_imports #{@import.kind}", title: t('.title'), icon: 'fad fa-file-spreadsheet' do |card|
+        - card.action
+          = f.submit
 
-    .grid.grid-cols-12.gap-4
-      .col-span-12
-        .prose
-          p= t('.explanation_html', name: @import.importer.class.friendly_name, sample_path: sample_import_path(kind: @import.kind))
-          - if @import.allow_export?
-            p= t('.export_html', export_path: export_path(kind: @import.kind))
+        .grid.grid-cols-12.gap-4
+          .col-span-12
+            .prose
+              p= t('.explanation_html', name: @import.importer.class.friendly_name, sample_path: sample_import_path(kind: @import.kind))
+              - if @import.allow_export?
+                p= t('.export_html', export_path: export_path(kind: @import.kind))
 
-      .col-span-12
-        - @import.importer.overridable_columns.each do |column|
-          = f.fields_for :column_overrides do |fff|
-            - if column.collection
-              = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: true, required: false
-            - else
-              =  fff.input column.attribute, label: column.name, required: false
+          .col-span-12
+            - @import.importer.overridable_columns.each do |column|
+              = f.fields_for :column_overrides do |fff|
+                - if column.collection
+                  = fff.input column.attribute, as: :select, label: column.name, collection: column.collection, include_blank: true, required: false
+                - else
+                  =  fff.input column.attribute, label: column.name, required: false
 
-      .col-span-12
-        = f.input :original, as: :file
+          .col-span-12
+            = f.input :original, as: :file
+
+.grid.grid-cols-1.gap-4.sm:grid-cols-3.mt-4
+  .col-span-3.sm:col-span-3
+    = sts.card :importo_imports, title: "#{@import.kind.humanize} imports", icon: 'fad fa-file-import', content_padding: false do |card|
+      = card.table(:importo_imports, parameters: { kind: @import.kind }, custom_views: false)
 

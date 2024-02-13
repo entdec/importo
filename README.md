@@ -38,6 +38,7 @@ class ProductsImporter < ApplicationImporter
       { filename: File.basename(uri.to_s), io: URI.open(uri) }
     end
   end
+  column name: :kitting_component_product, delay: ->(value) {value.present? ? 5 : 0 }
 
   def export_scope
     Current.account.products
@@ -65,6 +66,7 @@ en:
         number: Number
         description: Description
         images: Images
+        kitting_component_product: Component Product
       # Shown in note in import sheet
       hint:
         id: 36 characters, existing of hexadecimal numbers, separated by dashes
@@ -89,6 +91,9 @@ Add this line to your application's Gemfile:
 ```ruby
 gem 'importo'
 ```
+
+Importo depends on Sidekiq Pro's batch functionality, 
+though you can use [sidekiq-batch](https://github.com/entdec/sidekiq-batch) as a drop-in for that.
 
 And then execute:
 

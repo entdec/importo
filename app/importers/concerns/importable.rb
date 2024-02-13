@@ -67,11 +67,14 @@ module Importable
       v.options[:attribute].present?
     end
 
+    cols_to_populate = cols_to_populate.deep_symbolize_keys
+
     cols_to_populate.each do |k, col|
       attr = col.options[:attribute]
 
       next unless row.key? k
-      next if (row[k].nil? && col.options[:default].nil?)
+      next if !row[k].present? && col.options[:default].nil?
+
       attributes = if !row[k].present? && !col.options[:default].nil?
                      set_attribute(attributes, attr, col.options[:default])
                    else
@@ -104,17 +107,26 @@ module Importable
   def import!
     raise ArgumentError, 'Invalid data structure' unless structure_valid?
 
-    results = loop_data_rows do |attributes, index|
-      process_data_row(attributes, index)
+    batch = Sidekiq::Batch.new
+    batch.description = "#{import.original.filename} - #{import.kind}"
+    # this will call "ImportJobCallback.new.on_complete" when all jobs are executed at least once irrespective of failure or success, not ideal with when we have set retry on a job
+    # batch.on(:complete, Importo::ImportJobCallback, import_id: import.id)
+    # this will call "ImportJobCallback.new.on_success" when all jobs are successfully executed
+    batch.on(:success, Importo::ImportJobCallback, import_id: import.id)
+
+    batch.jobs do
+      column_with_delay = columns.select{|k,v| v.delay.present?}
+      loop_data_rows do |attributes, index|
+        if column_with_delay.present?
+          delay = column_with_delay.map do |k, v|
+            next unless attributes[k].present?
+            v.delay.call(attributes[k])
+          end.compact
+        end
+        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id) if delay.present?
+        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id) unless delay.present?
+      end
     end
-
-    blob = ActiveStorage::Blob.create_and_upload!(io: results_file, filename: @import.importer.file_name('results'),
-                                                  content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    @import.result.attach(blob)
-
-    @import.result_message = I18n.t('importo.importers.result_message', nr: results.compact.count, of: results.count,
-                                                                        start_row: data_start_row)
-    @import.complete!
 
     true
   rescue StandardError => e
@@ -125,24 +137,14 @@ module Importable
     false
   end
 
-  private
-
-  ##
-  # Overridable failure method
-  #
-  def failure(_row, _record, index, exception)
-    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
-  end
-
-  def process_data_row(attributes, index)
+  def process_data_row(attributes, index, last_attempt: true)
     record = nil
     row_hash = Digest::SHA256.base64digest(attributes.inspect)
     duplicate_import = nil
 
-    begin
+    run_callbacks(:row_import) do
       ActiveRecord::Base.transaction(requires_new: true) do
         register_result(index, hash: row_hash, state: :processing)
-
         record = build(attributes)
         record.validate!
         before_save(record, attributes)
@@ -153,19 +155,41 @@ module Importable
 
         register_result(index, class: record.class.name, id: record.id, state: :success)
       end
-      record
-    rescue Importo::DuplicateRowError
-      record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
-      register_result(index, id: record_id, state: :duplicate,
-                             message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
-      nil
-    rescue StandardError => e
-      errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
-      error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
-      failure(attributes, record, index, e)
-      register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
-      nil
     end
+
+    record
+  rescue Importo::DuplicateRowError
+    record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
+    register_result(index, id: record_id, state: :duplicate,
+                           message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
+
+    run_callbacks(:row_import, :after)
+    nil
+  rescue Importo::RetryError => e
+    raise e unless last_attempt
+
+    errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
+    error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
+    failure(attributes, record, index, e)
+    register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
+    nil
+  rescue StandardError => e
+    raise Importo::RetryError.new("ActiveRecord::RecordNotUnique",5) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
+    errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
+    error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
+    failure(attributes, record, index, e)
+    register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
+    run_callbacks(:row_import, :after)
+    nil
+  end
+
+  private
+
+  ##
+  # Overridable failure method
+  #
+  def failure(_row, _record, index, exception)
+    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
   end
 
   def set_attribute(hash, path, value)

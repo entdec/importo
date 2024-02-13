@@ -1,68 +1,74 @@
 # frozen_string_literal: true
 
 module Importo
-  class Configuration
-    attr_accessor :admin_authentication_module
-    attr_accessor :base_controller
-    attr_accessor :base_service
-    attr_accessor :base_service_context
-    attr_accessor :queue_name
+  module Options
+    module ClassMethods
+      def option(name, default: nil)
+        attr_accessor(name)
+        schema[name] = default
+      end
 
-    attr_writer :logger
-    attr_writer :current_import_owner
-    attr_writer :import_callbacks
-    attr_writer :admin_visible_imports
-    attr_writer :admin_can_destroy
-    attr_writer :admin_extra_links
-
-    def initialize
-      @logger               = Logger.new(STDOUT)
-      @logger.level         = Logger::INFO
-      @base_controller      = '::ApplicationController'
-      @base_service         = '::ApplicationService'
-      @base_service_context = '::ApplicationContext'
-      @current_import_owner = -> {}
-      @import_callbacks     = {
-        importing: lambda do |_import|
-        end,
-        completed: lambda do |_import|
-        end,
-        failed:    lambda do |_import|
-        end
-      }
-      @queue_name = :import
-
-      @admin_visible_imports = -> { Importo::Import.where(importo_ownable: current_import_owner) }
-      @admin_can_destroy = ->(_import) { false }
-
-      # Extra links relevant for this import: { link_name: { icon: 'far fa-..', url: '...' } }
-      @admin_extra_links = ->(_import) { }
+      def schema
+        @schema ||= {}
+      end
     end
 
-    # Config: logger [Object].
-    def logger
-      @logger.is_a?(Proc) ? instance_exec(&@logger) : @logger
+    def set_defaults!
+      self.class.schema.each do |name, default|
+        instance_variable_set("@#{name}", default)
+      end
     end
 
-    def current_import_owner
-      raise 'current_import_owner should be a Proc' unless @current_import_owner.is_a? Proc
-      instance_exec(&@current_import_owner)
-    end
-
-    def import_callback(import, state)
-      instance_exec(import, &@import_callbacks[state]) if @import_callbacks[state]
-    end
-
-    def admin_visible_imports
-      instance_exec(&@admin_visible_imports) if @admin_visible_imports
-    end
-
-    def admin_can_destroy(import)
-      instance_exec(import, &@admin_can_destroy) if @admin_can_destroy
-    end
-
-    def admin_extra_links(import)
-      instance_exec(import, &@admin_extra_links) if @admin_extra_links
+    def self.included(cls)
+      cls.extend(ClassMethods)
     end
   end
+
+  class Configuration
+    include Options
+
+    option :logger, default: Rails.logger
+    option :admin_authentication_module
+    option :base_controller, default: "::ApplicationController"
+    option :base_service, default: "::ApplicationService"
+    option :base_service_context, default: "::ApplicationContext"
+    option :current_import_owner, default: lambda {}
+    option :queue_name, default: :import
+
+    option :admin_visible_imports, default: lambda { Importo::Import.where(importo_ownable: Importo.config.current_import_owner) }
+    option(:admin_can_destroy,
+           default: lambda do |import|
+             false
+           end
+    )
+
+    # Extra links relevant for this import: { link_name: { icon: 'far fa-..', url: '...' } }
+    option(:admin_extra_links,
+           default: lambda do |import|
+             []
+           end
+    )
+
+    def initialize
+      set_defaults!
+    end
+  end
+
+  module Configurable
+    attr_writer :config
+
+    def config
+      @config ||= Configuration.new
+    end
+
+    def configure
+      yield(config)
+    end
+    alias setup configure
+
+    def reset_config!
+      @config = Configuration.new
+    end
+  end
+
 end

@@ -76,8 +76,12 @@ module Importo
     end
 
     def content_validator
-      errors.add(:original, I18n.t('importo.errors.structure_invalid', invalid_headers: importer.invalid_header_names.join(', '))) unless importer.structure_valid?
-    rescue => e
+      unless importer.structure_valid?
+        errors.add(:original,
+                   I18n.t('importo.errors.structure_invalid',
+                          invalid_headers: importer.invalid_header_names.join(', ')))
+      end
+    rescue StandardError => e
       errors.add(:original, I18n.t('importo.errors.parse_error', error: e.message))
     end
 

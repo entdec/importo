@@ -18,6 +18,11 @@ en:
         success: "Import canceled for id %{id}, Redirecting to new"
       index:
         title: Import results
+        card:
+          importo_imports:
+            title: Import results
+            tab:
+              Imports: Imports
       new:
         submit: "Import"
         title: Import
@@ -26,10 +31,14 @@ en:
         error_explanation: "The following problems prohibited this import from completing:"
         import: Import %{kind}
         import_button: Import
+        card:
+          importo_imports:
+            tab:
+              importo_imports: Imports
       create:
         flash:
           no_file: Import failed, please upload a file.
-          error: Import failed, there were problems.
+          error: Import failed, there were problems %{error}.
           success: "Import scheduled with id %{id}, you will get an email with the results."
       preview:
         title: "%{kind} Import Preview"

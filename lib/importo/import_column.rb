@@ -59,5 +59,9 @@ module Importo
     def collection
       options[:collection]
     end
+
+    def delay
+      options[:delay]
+    end
   end
 end

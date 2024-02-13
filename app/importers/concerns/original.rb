@@ -102,7 +102,7 @@ module Original
   end
 
   def duplicate(row_hash, id)
-    Importo::Import.where("results @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND id <> :id", id: id).first
+    Importo::Result.where("details @> '[{\"hash\": \"#{row_hash}\", \"state\": \"success\"}]' AND import_id <> :import_id", import_id: id).first
   end
 
   def duplicate?(row_hash, id)
@@ -114,6 +114,7 @@ module Original
   def loop_data_rows
     (data_start_row..spreadsheet.last_row).map do |index|
       row = cells_from_row(index, false)
+
       attributes = Hash[[attribute_names, row].transpose]
       attributes = attributes.map do |column, value|
         value = strip_tags(value.strip) if value.respond_to?(:strip) && columns[column]&.options[:strip_tags] != false
@@ -134,7 +135,7 @@ module Original
   end
 
   def attribute_names
-    return columns.keys if !includes_header? || ignore_header?
+    return columns.keys if !includes_header?
 
     translated_header_names = cells_from_row(header_row)
     @header_names = translated_header_names.map do |name|
