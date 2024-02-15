@@ -1,4 +1,4 @@
-= sts.form_for(@import, method: :post, url: upload_import_path(@import)) do |f|
+= sts.form_with(url: upload_import_path) do |f|
   = sts.card :"importo_imports #{@import.kind}", title: t('.title', kind: @import&.kind.capitalize), icon: 'fad fa-file-spreadsheet' do |card|
     - card.action
       / = f.button 'Cancel', value: 'cancel'
@@ -22,6 +22,11 @@
                 tr
                   - @sheet_data.first.keys.each_with_index do |header, index|
                     th.px-3.py-3.5.text-left.text-sm.font-semibold.border-2.text-gray-600[scope="col"]
+                      = f.check_box :selected_items, { multiple: true, checked: @check_header.include?(header), disabled: @check_header.exclude?(header) }, header
+                tr
+                  - @sheet_data.first.keys.each_with_index do |header, index|
+                    th.px-3.py-3.5.text-left.text-sm.font-semibold.border-2.text-gray-600[scope="col"]
+                      / = f.check_box :active, checked: @check_header.include?(header)
                       = header
               tbody.divide-y.divide-gray-200.bg-white
                 - @sheet_data.reject! { |h| h.keys == h.values }&.each do |h|

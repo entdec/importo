@@ -11,7 +11,7 @@ module Importo
     validates :kind, presence: true
     validates :original, presence: true
     validate :content_validator
-
+    attr_accessor :checked_headers
     begin
       has_one_attached :original
       has_one_attached :result

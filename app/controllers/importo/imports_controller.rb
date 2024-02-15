@@ -18,6 +18,7 @@ module Importo
         @original.rewind
         sheet =  Roo::Excelx.new(@original.path)
         @sheet_data = sheet.parse(headers: true)
+        @check_header = @sheet_data.reject{ |h| h.keys == h.values }.map{|h| h.compact_blank}.reduce({}, :merge).keys
       end
       redirect_to action: :new unless  @sheet_data
     end
@@ -42,7 +43,8 @@ module Importo
     def cancel
       @import = Import.find(params[:id])
       @import.original.purge if @import.concept?
-      flash[:notice] = t('.flash.cancel', id: @import.id)
+      Signum.error(Current.user, text: t('.flash.cancel', id: @import.id))
+      # flash[:notice] = t('.flash.cancel', id: @import.id)
       redirect_to action: :new, kind: @import.kind
     end
 
@@ -57,12 +59,14 @@ module Importo
 
     def upload
       @import = Import.find(params[:id])
+      @import.checked_headers = params[:selected_items].reject { |element| element == "0" }
+      binding.pry
       @import.confirm! if @import.can_confirm?
       if @import.valid? && @import.schedule!
-        flash[:notice] = t('.flash.success', id: @import.id)
+        # flash[:notice] = t('.flash.success', id: @import.id)
         redirect_to action: :index
       else
-        flash[:error] = t('.flash.error')
+        # flash[:error] = t('.flash.error')
         render :new
       end
     end
