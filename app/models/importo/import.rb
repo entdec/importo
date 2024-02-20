@@ -3,15 +3,15 @@
 module Importo
   class Import < Importo::ApplicationRecord
     # include ActiveStorage::Downloading
-
+    attr_accessor :checked_columns
     belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
+    has_many :results, class_name: 'Importo::Result', dependent: :delete_all
 
     validates :kind, presence: true
     validates :original, presence: true
     validate :content_validator
-    attr_accessor :checked_headers
     begin
       has_one_attached :original
       has_one_attached :result
@@ -20,8 +20,6 @@ module Importo
     end
 
     state_machine :state, initial: :concept do
-      audit_trail class: ResourceStateTransition, as: :resource if "ResourceStateTransition".safe_constantize
-
       state :confirmed
       state :importing
       state :scheduled
@@ -30,7 +28,7 @@ module Importo
       state :reverted
 
       after_transition any => any do |imprt, transition|
-        CallbackService.perform_later(import: imprt&.id, callback: transition.to_name)
+        imprt.importer.state_changed(imprt, transition)
       end
 
       after_transition any => :scheduled, do: :schedule_import
@@ -92,7 +90,7 @@ module Importo
     private
 
     def schedule_import
-      ImportService.perform_later(import: self)
+      ImportService.perform_later(import: self, checked_columns: self.checked_columns)
     end
 
     def schedule_revert

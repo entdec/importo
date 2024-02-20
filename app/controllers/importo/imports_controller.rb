@@ -22,6 +22,7 @@ module Importo
       end
       redirect_to action: :new unless  @sheet_data
     end
+
     def create
       unless import_params
         @import = Import.new(kind: params[:kind], locale: I18n.locale)
@@ -59,14 +60,12 @@ module Importo
 
     def upload
       @import = Import.find(params[:id])
-      @import.checked_headers = params[:selected_items].reject { |element| element == "0" }
-      binding.pry
+      @import.checked_columns = params[:selected_items].reject { |element| element == "0" }
       @import.confirm! if @import.can_confirm?
       if @import.valid? && @import.schedule!
-        # flash[:notice] = t('.flash.success', id: @import.id)
         redirect_to action: :index
       else
-        # flash[:error] = t('.flash.error')
+        Signum.error(Current.user, text: t('.flash.error', id: @import.id))
         render :new
       end
     end
