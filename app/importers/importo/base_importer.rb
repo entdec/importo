@@ -18,7 +18,7 @@ module Importo
     end
 
     delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?,
-             :ignore_header?, :t, to: :class
+             :ignore_header?, :t, :allow_position_reshuffle?, :classes_to_not_reshuffle, to: :class
     attr_reader :import, :blob
 
     def initialize(imprt = nil)
