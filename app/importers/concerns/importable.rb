@@ -148,7 +148,13 @@ module Importable
         record = build(attributes)
         record.validate!
         before_save(record, attributes)
-        record.save!
+        if self.allow_position_reshuffle?
+          record.save!
+        else
+          self.classes_to_not_reshuffle.first.acts_as_list_no_update(self.classes_to_not_reshuffle.drop(1)) do
+            record.save!
+          end
+        end
         after_save(record, attributes)
         duplicate_import = duplicate?(row_hash, record.id)
         raise Importo::DuplicateRowError if duplicate_import
