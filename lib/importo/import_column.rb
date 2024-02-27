@@ -28,7 +28,7 @@ module Importo
       name = options[:attribute] || @name
 
       @allowed_names = I18n.available_locales.map do |locale|
-        I18n.t(".column.#{name}", scope: [:importers, options[:scope]], locale: :en, default: name)
+        I18n.t(".column.#{name}", scope: [:importers, options[:scope]], locale: locale, default: name)
       end.compact.uniq
     end
 
