@@ -18,7 +18,7 @@ module Importo
         @original.rewind
         sheet =  Roo::Excelx.new(@original.path)
         @sheet_data = sheet.parse(headers: true)
-        @check_header = @sheet_data.reject{ |h| h.keys == h.values }.map{|h| h.compact_blank}.reduce({}, :merge).keys
+        @check_header = @sheet_data.reject{ |h| h.keys == h.values }.map{|h| h.transform_values(&:to_s).compact_blank}.reduce({}, :merge).keys
       end
       if @sheet_data.nil? || @sheet_data.reject{ |h| h.keys == h.values }.blank?
         Signum.error(Current.user, text: t('.no_file'))
