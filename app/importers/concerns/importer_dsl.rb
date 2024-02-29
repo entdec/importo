@@ -115,8 +115,12 @@ module ImporterDsl
     ##
     # Allow reshuffling acts_as_lists positions if a new position is inserted between existing positioned items
     ##
-    def allow_position_reshuffle?
-      @allow_position_reshuffle.nil? ? true : @allow_position_reshuffle
+    def allow_position_reshuffle?(attributes= nil)
+      if @allow_position_reshuffle.is_a?(Proc)
+        @allow_position_reshuffle.call(attributes)
+      else
+        @allow_position_reshuffle.nil? ? true : @allow_position_reshuffle
+      end
     end
 
     def classes_to_not_reshuffle
