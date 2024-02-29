@@ -20,7 +20,10 @@ module Importo
         @sheet_data = sheet.parse(headers: true)
         @check_header = @sheet_data.reject{ |h| h.keys == h.values }.map{|h| h.compact_blank}.reduce({}, :merge).keys
       end
-      redirect_to action: :new unless  @sheet_data
+      if @sheet_data.nil? || @sheet_data.reject{ |h| h.keys == h.values }.blank?
+        Signum.error(Current.user, text: t('.no_file'))
+        redirect_to action: :new
+      end
     end
 
     def create
@@ -60,7 +63,7 @@ module Importo
 
     def upload
       @import = Import.find(params[:id])
-      @import.checked_columns = params[:selected_items].reject { |element| element == "0" }
+      @import.checked_columns = params[:selected_items]&.reject { |element| element == "0" }
       @import.confirm! if @import.can_confirm?
       if @import.valid? && @import.schedule!
         redirect_to action: :index

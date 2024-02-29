@@ -33,7 +33,7 @@ module ResultFeedback
                    end
         styles = []
         attributes.map do |column, value|
-          export_format = columns[column]&.options.dig(:export, :format)
+          export_format = columns[column]&.options&.dig(:export, :format)
           format_code = if export_format == "number" || (export_format.nil? && value.is_a?(Numeric))
                           '#'
                         elsif export_format == 'text' || (export_format.nil? && value.is_a?(String))
@@ -44,7 +44,7 @@ module ResultFeedback
                           'General'
                         end
           config_style = {}
-          config_style.merge!(columns[column]&.options[:style]) unless columns[column]&.options[:style].nil?
+          config_style.merge!(columns[column]&.options[:style]) unless columns[column]&.options&.dig(:style).nil?
           config_style.merge!({ format_code: format_code, bg_color: bg_color })
           styles << workbook.styles.add_style(config_style)
         end

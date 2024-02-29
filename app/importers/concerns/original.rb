@@ -122,7 +122,7 @@ module Original
       end.to_h
       attributes.reject! { |k, _v| headers_added_by_import.include?(k) }
       if checked_columns.present?
-        selected_columns = checked_columns[:checked_columns].map{|i| col_for(i).first}
+        selected_columns = checked_columns[:checked_columns].map{|i| col_for(i)&.first}
         attributes.reject!{|k, _v| selected_columns.exclude?(k) }
       end
       yield attributes, index

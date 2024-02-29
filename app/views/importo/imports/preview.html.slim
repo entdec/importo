@@ -22,12 +22,12 @@
                 tr
                   - @sheet_data.first.keys.each_with_index do |header, index|
                     th.px-3.py-3.5.text-left.text-sm.font-semibold.border-2.text-gray-600[scope="col"]
-                      = f.check_box :selected_items, { multiple: true, checked: @check_header.include?(header), disabled: @check_header.exclude?(header) }, header
+                      = f.check_box :selected_items, { multiple: true, checked: @check_header.include?(header), disabled: @check_header.exclude?(header) }, ActionController::Base.helpers.strip_tags(header)
                 tr
                   - @sheet_data.first.keys.each_with_index do |header, index|
                     th.px-3.py-3.5.text-left.text-sm.font-semibold.border-2.text-gray-600[scope="col"]
                       / = f.check_box :active, checked: @check_header.include?(header)
-                      = header
+                      = ActionController::Base.helpers.strip_tags(header)
               tbody.divide-y.divide-gray-200.bg-white
                 - @sheet_data.reject! { |h| h.keys == h.values }&.each do |h|
                   tr
