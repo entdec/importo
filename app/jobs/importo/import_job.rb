@@ -22,11 +22,6 @@ module Importo
 
     def perform(attributes, index, import_id)
       self.class.execute_row(attributes, index, import_id, false, bid)
-
-      # puts "Working within batch #{bid}"
-      # batch.jobs do
-      # add more jobs
-      # end
     end
 
     def self.execute_row(attributes, index, import_id, last_attempt, bid)
