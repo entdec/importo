@@ -5,7 +5,7 @@ module Importo
     def on_complete(_status, options)
       options = options.deep_stringify_keys
       import = Import.find(options['import_id'])
-      if import.present?
+      if import.present? && _status.pending.zero?
         import.result.attach(io: import.importer.results_file, filename: import.importer.file_name('results'),
                              content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 

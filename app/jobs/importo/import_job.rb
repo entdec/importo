@@ -20,8 +20,13 @@ module Importo
       end
     end
 
-    def perform(attributes, index, import_id)
-      self.class.execute_row(attributes, index, import_id, false, bid)
+    def perform(attributes, index, import_id, sequential = false )
+      import = Import.find(import_id)
+      if sequential && index>2 && ((2..index-1).to_a - import.results.pluck(:row_index)).present?
+        raise Importo::RetryError.new("record not found, waiting for #{index} line to be inserted", 3)
+      else
+        self.class.execute_row(attributes, index, import_id, false, bid)
+      end
     end
 
     def self.execute_row(attributes, index, import_id, last_attempt, bid)

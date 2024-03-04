@@ -123,7 +123,7 @@ module Importable
             v.delay.call(attributes[k])
           end.compact
         end
-        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id) if delay.present?
+        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id, true) if delay.present?
         Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id) unless delay.present?
       end
     end
