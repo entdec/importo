@@ -104,7 +104,7 @@ module Importable
   #
   # Does the actual import
   #
-  def import!
+  def import!(checked_columns)
     raise ArgumentError, 'Invalid data structure' unless structure_valid?
 
     batch = Sidekiq::Batch.new
@@ -116,7 +116,7 @@ module Importable
 
     batch.jobs do
       column_with_delay = columns.select{|k,v| v.delay.present?}
-      loop_data_rows do |attributes, index|
+      loop_data_rows(checked_columns) do |attributes, index|
         if column_with_delay.present?
           delay = column_with_delay.map do |k, v|
             next unless attributes[k].present?

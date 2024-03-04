@@ -58,6 +58,7 @@ module Importo
                              filename: 'simple_sheet.xlsx')
       assert import.save, import.errors.messages
 
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
 
@@ -78,6 +79,7 @@ module Importo
                            '<strong>atest</strong>-description']]), filename: 'simple_sheet.xlsx'
       )
       assert import.save, import.errors.messages
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
 
@@ -102,6 +104,7 @@ module Importo
       import.original.attach(io: simple_sheet([%w[aid atest atest-description], %w[bid btest btest-description]]),
                              filename: 'simple_sheet.xlsx')
       assert import.save
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
 
@@ -177,6 +180,7 @@ module Importo
                           %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx'
       )
       assert import.save, import.errors.messages
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
 
@@ -193,6 +197,7 @@ module Importo
                           %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx'
       )
       assert import.save, import.errors.messages
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
 
@@ -209,6 +214,7 @@ module Importo
                           %w[aid atest atest-description]]), filename: 'simple_sheet.xlsx'
       )
       assert import.save, import.errors.messages
+      import.confirm
       import.schedule
       assert_equal 'scheduled', import.state
 
