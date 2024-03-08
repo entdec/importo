@@ -12,6 +12,9 @@ nl:
     imports:
       index:
         title: Import resultaten
+        card:
+          importo_imports:
+            title: Imports
       new:
         import:
           title: Importeer
