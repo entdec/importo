@@ -12,3 +12,4 @@ gem 'servitium', '~> 1.1'
 gem "signum", "~> 0.3"
 gem "sidekiq-pro"
 gem "satis", "~> 2", entdec: "satis", branch: "develop"
+gem "sprockets-rails"
