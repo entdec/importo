@@ -29,5 +29,7 @@ if defined? Mensa
       @filtered_scope
     end
   end
-
+else
+  class Importo::MensaImportsTable
+  end
 end
