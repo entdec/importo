@@ -28,6 +28,7 @@ nl:
           error: Import mislukt, er waren problemen, voor details zie hieronder.
           success: "Import geplanned met id %{id}, je krijgt een email met de resultaten."
     errors:
+      parse_error: "We ondervonden een parse error: %{error}"
       structure_invalid: "The structuur is ongeldig, dit zijn de ongeldige headers: %{invalid_headers}"
     importers:
       result_message: "%{nr} van %{of} rijen succesvol geimporteerd"
