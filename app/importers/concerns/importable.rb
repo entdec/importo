@@ -91,13 +91,19 @@ module Importable
   # Callbakcs
   #
   def before_build(_record, _row); end
-  def around_build(_record, _row); end
+  def around_build(_record, _row)
+    yield
+  end
   def after_build(_record, _row); end
   def before_save(_record, _row); end
-  def around_save(_record, _row); end
+  def around_save(_record, _row)
+    yield
+  end
   def after_save(_record, _row); end
   def before_validate(_record, _row); end
-  def around_validate(_record, _row); end
+  def around_validate(_record, _row)
+    yield
+  end
   def after_validate(_record, _row); end
 
   #
@@ -142,12 +148,17 @@ module Importable
     duplicate_import = nil
 
     run_callbacks :row_import do
+      record = nil
       before_build(record, attributes)
-      record = build(attributes)
+      around_build(record, attributes) do
+        record = build(attributes)
+      end
       after_build(record, attributes)
 
       before_validate(record, attributes)
-      record.validate!
+      around_validate(record, attributes) do
+        record.validate!
+      end
       after_validate(record, attributes)
 
       ActiveRecord::Base.transaction do
