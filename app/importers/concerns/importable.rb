@@ -128,9 +128,6 @@ module Importable
 
     batch = Sidekiq::Batch.new
     batch.description = "#{import.original.filename} - #{import.kind}"
-    # this will call "ImportJobCallback.new.on_complete" when all jobs are executed at least once irrespective of failure or success, not ideal with when we have set retry on a job
-    # batch.on(:complete, Importo::ImportJobCallback, import_id: import.id)
-    # this will call "ImportJobCallback.new.on_success" when all jobs are successfully executed
     batch.on(:success, Importo::ImportJobCallback, import_id: import.id)
 
     batch.jobs do
@@ -234,7 +231,10 @@ module Importable
     hash.deep_merge(tmp_hash)
   end
 
-  def record_created_in_this_import?(record)
-    @import.results.where("details->>'state' = ?", "success").where("details->>'id' = ? ", record.id).present?
+  # Returns whether the record was created this import
+  # @param [Object] record
+  # @return [TrueClass, FalseClass]
+  def created_this_import?(record)
+    @import.results.where("details->>'state' = ?", "success").where("details->>'id' = ? ", record.id).exists?
   end
 end
