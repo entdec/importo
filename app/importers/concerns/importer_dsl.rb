@@ -34,7 +34,7 @@ module ImporterDsl
     def column(**options, &block)
       name ||= options[:name]
       name ||= options[:attribute]
-      options[:scope] = name.underscore.to_s.tr("/", ".").to_sym
+      options[:scope] = name.to_s.underscore.to_s.tr("/", ".").to_sym
       columns[name] = Importo::ImportColumn.new(name: name, **options, &block)
     end
 
