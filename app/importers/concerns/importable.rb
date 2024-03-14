@@ -233,4 +233,8 @@ module Importable
     tmp_hash = path.to_s.split(".").reverse.inject(value) { |h, s| {s => h} }
     hash.deep_merge(tmp_hash)
   end
+
+  def record_created_in_this_import?(record)
+    @import.results.where("details->>'state' = ?", "success").where("details->>'id' = ? ", record.id).present?
+  end
 end
