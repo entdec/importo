@@ -231,10 +231,17 @@ module Importable
     hash.deep_merge(tmp_hash)
   end
 
-  # Returns whether the record was created this import
-  # @param [Object] record
-  # @return [TrueClass, FalseClass]
-  def created_this_import?(record)
-    @import.results.where("details->>'state' = ?", "success").where("details->>'id' = ? ", record.id).exists?
+  # Only when the block returns a record created in this import, it returns that record, otherwise nil
+  #
+  #  record ||= created_this_import? do
+  #    User.find_by(email: row[:email].downcase) if row[:email].present?
+  #  end
+  #
+  # Only if the user was created this import will the block return the user found.
+  #
+  # @return [Object]
+  def created_this_import?(&block)
+    record = yield
+    record if record && @import.results.where("details->>'state' = ?", "success").where("details->>'id' = ? ", record.id).exists?
   end
 end
