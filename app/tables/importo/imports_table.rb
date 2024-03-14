@@ -4,7 +4,7 @@ class Importo::ImportsTable < ActionTable::ActionTable
   model Importo::Import
 
   column(:created_at, html_value: proc { |import| l(import.created_at.in_time_zone(Time.zone), format: :short).to_s })
-  column(:user, sort_field: 'users.first_name', filter: { parameter: :ownable, collection_proc: -> { Importo::Import.order(created_at: :desc).limit(200).map(&:importo_ownable).uniq.sort_by(&:name).map { |o| [o.name, "#{o.class.name}##{o.id}"] } } } ) { |import| import.importo_ownable.name }
+  column(:user, sortable: false) { |import| import.importo_ownable.name }
   column(:kind, sortable: false)
   column(:original, sortable: false) { |import| link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment"), target: '_blank') }
   column(:state)
@@ -22,19 +22,14 @@ class Importo::ImportsTable < ActionTable::ActionTable
     end
   end
 
+  # filter(:importo_ownable){ parameter: :ownable, collection_proc: -> { Importo::Import.order(created_at: :desc).limit(200).map(&:importo_ownable).uniq.sort_by(&:name).map { |o| [o.name, "#{o.class.name}##{o.id}"] } } } )
+
   initial_order :created_at, :desc
 
   private
 
   def scope
     @scope = Importo.config.admin_visible_imports.call
-    @scope = @scope.joins("LEFT JOIN users on importo_imports.importo_ownable_type = 'User' and importo_imports.importo_ownable_id = users.id ")
-  end
-
-  def filtered_scope
-    @filtered_scope = scope
-    @filtered_scope = @filtered_scope.where(importo_ownable_type: params[:ownable].split('#').first, importo_ownable_id: params[:ownable].split('#').last) if params[:ownable]
-    @filtered_scope = @filtered_scope.where(kind: params[:kind]) if params[:kind]
-    @filtered_scope
+    @scope
   end
 end

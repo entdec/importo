@@ -88,18 +88,17 @@ module Importable
   end
 
   #
-  # Mangle the record before saving
+  # Callbakcs
   #
-  def before_save(_record, _row)
-    # Implement optionally in child class to mangle
-  end
-
-  #
-  # Any updates that have to be done after saving
-  #
-  def after_save(_record, _row)
-    # Implement optionally in child class to perform other updates
-  end
+  def before_build(_record, _row); end
+  def around_build(_record, _row); end
+  def after_build(_record, _row); end
+  def before_save(_record, _row); end
+  def around_save(_record, _row); end
+  def after_save(_record, _row); end
+  def before_validate(_record, _row); end
+  def around_validate(_record, _row); end
+  def after_validate(_record, _row); end
 
   #
   # Does the actual import
@@ -142,20 +141,26 @@ module Importable
     row_hash = Digest::SHA256.base64digest(attributes.inspect)
     duplicate_import = nil
 
-    run_callbacks(:row_import) do
-      ActiveRecord::Base.transaction(requires_new: true) do
+    run_callbacks :row_import do
+      before_build(record, attributes)
+      record = build(attributes)
+      after_build(record, attributes)
+
+      before_validate(record, attributes)
+      record.validate!
+      after_validate(record, attributes)
+
+      ActiveRecord::Base.transaction do
         register_result(index, hash: row_hash, state: :processing)
-        record = build(attributes)
-        record.validate!
-        before_save(record, attributes)
-        if self.allow_position_reshuffle?(attributes)
-          record.save!
-        else
-          self.classes_to_not_reshuffle.first.acts_as_list_no_update(self.classes_to_not_reshuffle.drop(1)) do
+
+        model.with_advisory_lock(:importo) do
+          before_save(record, attributes)
+          around_save(record, attributes) do
             record.save!
           end
+          after_save(record, attributes)
         end
-        after_save(record, attributes)
+
         duplicate_import = duplicate?(row_hash, record.id)
         raise Importo::DuplicateRowError if duplicate_import
 
@@ -180,6 +185,7 @@ module Importable
     register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
     nil
   rescue StandardError => e
+    raise Importo::RetryError.new("ActiveRecord::RecordInvalid",5) if !last_attempt && e.is_a?(ActiveRecord::RecordInvalid)
     raise Importo::RetryError.new("ActiveRecord::RecordNotUnique",5) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
     errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
     error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"

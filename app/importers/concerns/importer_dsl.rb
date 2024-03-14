@@ -71,11 +71,6 @@ module ImporterDsl
       @csv_options
     end
 
-    def allow_position_reshuffle(allow_position_reshuffle = true, classes_to_not_reshuffle = [])
-      @allow_position_reshuffle = allow_position_reshuffle
-      @classes_to_not_reshuffle = classes_to_not_reshuffle
-    end
-
     ##
     # Set to true to allow duplicate rows to be processed, if false (default) duplicate rows will be marked duplicate and ignored.
     #
@@ -110,21 +105,6 @@ module ImporterDsl
     #
     def ignore_header?
       @ignore_header
-    end
-
-    ##
-    # Allow reshuffling acts_as_lists positions if a new position is inserted between existing positioned items
-    ##
-    def allow_position_reshuffle?(attributes= nil)
-      if @allow_position_reshuffle.is_a?(Proc)
-        @allow_position_reshuffle.call(attributes)
-      else
-        @allow_position_reshuffle.nil? ? true : @allow_position_reshuffle
-      end
-    end
-
-    def classes_to_not_reshuffle
-      @classes_to_not_reshuffle
     end
 
     def overridable_columns

@@ -2,6 +2,7 @@
 
 module Importo
   class BaseImporter
+    include ActiveSupport::Callbacks
     include ActionView::Helpers::SanitizeHelper
     include Importable
     include Exportable
@@ -9,8 +10,9 @@ module Importo
     include Original
     include ResultFeedback
     include ImporterDsl
+
     # include ActiveStorage::Downloading
-    include ActiveSupport::Callbacks
+
     define_callbacks :row_import
 
     Importo::Import.state_machine.states.map(&:name).each do |state|
@@ -18,7 +20,7 @@ module Importo
     end
 
     delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?,
-             :ignore_header?, :t, :allow_position_reshuffle?, :classes_to_not_reshuffle, to: :class
+             :ignore_header?, :t, to: :class
     attr_reader :import, :blob
 
     def initialize(imprt = nil)
