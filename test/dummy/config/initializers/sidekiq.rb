@@ -1,6 +1,6 @@
 Sidekiq.strict_args!(false)
 
 if Rails.env.test?
-  require 'sidekiq/testing'
+  require "sidekiq/testing"
   Sidekiq::Testing.inline!
 end

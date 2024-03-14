@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 module ImporterDsl
   extend ActiveSupport::Concern
@@ -34,7 +34,7 @@ module ImporterDsl
     def column(**options, &block)
       name ||= options[:name]
       name ||= options[:attribute]
-      options[:scope] = self.name.underscore.to_s.tr('/', '.').to_sym
+      options[:scope] = name.underscore.to_s.tr("/", ".").to_sym
       columns[name] = Importo::ImportColumn.new(name: name, **options, &block)
     end
 

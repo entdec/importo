@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 module Importable
   extend ActiveSupport::Concern
@@ -14,9 +14,9 @@ module Importable
   end
 
   def convert_values(row)
-    return row if row.instance_variable_get('@importo_converted_values')
+    return row if row.instance_variable_get(:@importo_converted_values)
 
-    row.instance_variable_set('@importo_converted_values', true)
+    row.instance_variable_set(:@importo_converted_values, true)
 
     columns.each do |k, col|
       next if col.proc.blank? || row[k].nil?
@@ -50,17 +50,17 @@ module Importable
   # It wil try and find the record by id, or initialize a new record with it's attributes set based on the mapping from columns
   #
   def populate(row, record = nil)
-    raise 'No attributes set for columns' unless columns.any? { |_, v| v.options[:attribute].present? }
+    raise "No attributes set for columns" unless columns.any? { |_, v| v.options[:attribute].present? }
 
     row = convert_values(row)
 
     result = if record
-               record
-             else
-               raise 'No model set' unless model
+      record
+    else
+      raise "No model set" unless model
 
-               model.find_or_initialize_by(id: row['id'])
-             end
+      model.find_or_initialize_by(id: row["id"])
+    end
 
     attributes = {}
     cols_to_populate = columns.select do |_, v|
@@ -76,10 +76,10 @@ module Importable
       next if !row[k].present? && col.options[:default].nil?
 
       attributes = if !row[k].present? && !col.options[:default].nil?
-                     set_attribute(attributes, attr, col.options[:default])
-                   else
-                     set_attribute(attributes, attr, row[k])
-                   end
+        set_attribute(attributes, attr, col.options[:default])
+      else
+        set_attribute(attributes, attr, row[k])
+      end
     end
 
     result.assign_attributes(attributes)
@@ -90,27 +90,41 @@ module Importable
   #
   # Callbakcs
   #
-  def before_build(_record, _row); end
+  def before_build(_record, _row)
+  end
+
   def around_build(_record, _row)
     yield
   end
-  def after_build(_record, _row); end
-  def before_save(_record, _row); end
+
+  def after_build(_record, _row)
+  end
+
+  def before_save(_record, _row)
+  end
+
   def around_save(_record, _row)
     yield
   end
-  def after_save(_record, _row); end
-  def before_validate(_record, _row); end
+
+  def after_save(_record, _row)
+  end
+
+  def before_validate(_record, _row)
+  end
+
   def around_validate(_record, _row)
     yield
   end
-  def after_validate(_record, _row); end
+
+  def after_validate(_record, _row)
+  end
 
   #
   # Does the actual import
   #
   def import!
-    raise ArgumentError, 'Invalid data structure' unless structure_valid?
+    raise ArgumentError, "Invalid data structure" unless structure_valid?
 
     batch = Sidekiq::Batch.new
     batch.description = "#{import.original.filename} - #{import.kind}"
@@ -120,7 +134,7 @@ module Importable
     batch.on(:success, Importo::ImportJobCallback, import_id: import.id)
 
     batch.jobs do
-      column_with_delay = columns.select{|k,v| v.delay.present?}
+      column_with_delay = columns.select { |k, v| v.delay.present? }
       loop_data_rows do |attributes, index|
         if column_with_delay.present?
           delay = column_with_delay.map do |k, v|
@@ -134,9 +148,9 @@ module Importable
     end
 
     true
-  rescue StandardError => e
+  rescue => e
     @import.result_message = "Exception: #{e.message}"
-    Rails.logger.error "Importo exception: #{e.message} backtrace #{e.backtrace.join(';')}"
+    Rails.logger.error "Importo exception: #{e.message} backtrace #{e.backtrace.join(";")}"
     @import.failure!
 
     false
@@ -181,25 +195,25 @@ module Importable
 
     record
   rescue Importo::DuplicateRowError
-    record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
+    record_id = duplicate_import.results.find { |data| data["hash"] == row_hash }["id"]
     register_result(index, id: record_id, state: :duplicate,
-                           message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
+      message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
 
     run_callbacks(:row_import, :after)
     nil
   rescue Importo::RetryError => e
     raise e unless last_attempt
 
-    errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
-    error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
+    errors = record.respond_to?(:errors) && record.errors.full_messages.join(", ")
+    error_message = "#{e.message} (#{e.backtrace.first.split("/").last})"
     failure(attributes, record, index, e)
     register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
     nil
-  rescue StandardError => e
-    raise Importo::RetryError.new("ActiveRecord::RecordInvalid",5) if !last_attempt && e.is_a?(ActiveRecord::RecordInvalid)
-    raise Importo::RetryError.new("ActiveRecord::RecordNotUnique",5) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
-    errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
-    error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
+  rescue => e
+    raise Importo::RetryError.new("ActiveRecord::RecordInvalid", 5) if !last_attempt && e.is_a?(ActiveRecord::RecordInvalid)
+    raise Importo::RetryError.new("ActiveRecord::RecordNotUnique", 5) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
+    errors = record.respond_to?(:errors) && record.errors.full_messages.join(", ")
+    error_message = "#{e.message} (#{e.backtrace.first.split("/").last})"
     failure(attributes, record, index, e)
     register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
     run_callbacks(:row_import, :after)
@@ -212,11 +226,11 @@ module Importable
   # Overridable failure method
   #
   def failure(_row, _record, index, exception)
-    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
+    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(";")}"
   end
 
   def set_attribute(hash, path, value)
-    tmp_hash = path.to_s.split('.').reverse.inject(value) { |h, s| { s => h } }
+    tmp_hash = path.to_s.split(".").reverse.inject(value) { |h, s| {s => h} }
     hash.deep_merge(tmp_hash)
   end
 end

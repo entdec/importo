@@ -20,7 +20,7 @@ module Importo
     end
 
     delegate :friendly_name, :introduction, :model, :columns, :csv_options, :allow_duplicates?, :includes_header?,
-             :ignore_header?, :t, to: :class
+      :ignore_header?, :t, to: :class
     attr_reader :import, :blob
 
     def initialize(imprt = nil)
@@ -35,8 +35,8 @@ module Importo
 
     class << self
       def t(key, options = {})
-        if I18n.exists? "importers.#{name.underscore}#{key}".to_sym
-          I18n.t(key, options.merge(scope: "importers.#{name.underscore}".to_sym))
+        if I18n.exists? :"importers.#{name.underscore}#{key}"
+          I18n.t(key, options.merge(scope: :"importers.#{name.underscore}"))
         end
       end
     end

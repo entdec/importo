@@ -4,13 +4,13 @@ module Importo
 
     def on_complete(_status, options)
       options = options.deep_stringify_keys
-      import = Import.find(options['import_id'])
+      import = Import.find(options["import_id"])
       if import.present?
-        import.result.attach(io: import.importer.results_file, filename: import.importer.file_name('results'),
-                             content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        import.result.attach(io: import.importer.results_file, filename: import.importer.file_name("results"),
+          content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
-        import.result_message = I18n.t('importo.importers.result_message',
-                                       nr: import.results.where('details @> ?', { state: 'success' }.to_json).count, of: import.importer.send(:row_count))
+        import.result_message = I18n.t("importo.importers.result_message",
+          nr: import.results.where("details @> ?", {state: "success"}.to_json).count, of: import.importer.send(:row_count))
         import.complete! if import.can_complete?
       end
     end

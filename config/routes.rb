@@ -6,8 +6,8 @@ Importo::Engine.routes.draw do
       post :undo
     end
   end
-  get ':kind/new', to: 'imports#new', as: :new_import
-  get ':kind/sample', to: 'imports#sample', as: :sample_import
-  get ':kind/export', to: 'imports#export', as: :export
-  root to: 'imports#index'
+  get ":kind/new", to: "imports#new", as: :new_import
+  get ":kind/sample", to: "imports#sample", as: :sample_import
+  get ":kind/export", to: "imports#export", as: :export
+  root to: "imports#index"
 end

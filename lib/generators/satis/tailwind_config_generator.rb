@@ -1,10 +1,10 @@
-require 'rails/generators/base'
+require "rails/generators/base"
 
 module Satis
   module Generators
     class TailwindConfigGenerator < Rails::Generators::Base
-      source_root File.expand_path('../templates', __dir__)
-      desc 'Configures tailwind.config.js and application.tailwindcss.css'
+      source_root File.expand_path("../templates", __dir__)
+      desc "Configures tailwind.config.js and application.tailwindcss.css"
 
       def add_content_to_tailwind_config
         inject_into_file "config/tailwind.config.js", before: "],\n  theme: {" do

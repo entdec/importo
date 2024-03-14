@@ -33,19 +33,19 @@ module Importo
     end
 
     def hint
-      I18n.t(".hint.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+      I18n.t(".hint.#{options[:attribute]}", scope: [:importers, options[:scope]], default: "") if options[:attribute]
     end
 
     def explanation
-      I18n.t(".explanation.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+      I18n.t(".explanation.#{options[:attribute]}", scope: [:importers, options[:scope]], default: "") if options[:attribute]
     end
-    
+
     def value
-      I18n.t(".value.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+      I18n.t(".value.#{options[:attribute]}", scope: [:importers, options[:scope]], default: "") if options[:attribute]
     end
 
     def example
-      I18n.t(".example.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+      I18n.t(".example.#{options[:attribute]}", scope: [:importers, options[:scope]], default: "") if options[:attribute]
     end
 
     ##

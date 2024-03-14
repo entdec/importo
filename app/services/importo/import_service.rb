@@ -5,7 +5,7 @@ module Importo
     def perform
       context.import.import!
       context.import.importer.import!
-    rescue StandardError
+    rescue
       context.import.failure!
       context.fail!
     end

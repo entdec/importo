@@ -15,7 +15,7 @@ module Importo
 
     def set_defaults!
       self.class.schema.each do |name, default|
-        instance_variable_set("@#{name}", default)
+        instance_variable_set(:"@#{name}", default)
       end
     end
 
@@ -37,17 +37,15 @@ module Importo
 
     option :admin_visible_imports, default: lambda { Importo::Import.where(importo_ownable: Importo.config.current_import_owner) }
     option(:admin_can_destroy,
-           default: lambda do |import|
-             false
-           end
-    )
+      default: lambda do |import|
+        false
+      end)
 
     # Extra links relevant for this import: { link_name: { icon: 'far fa-..', url: '...' } }
     option(:admin_extra_links,
-           default: lambda do |import|
-             []
-           end
-    )
+      default: lambda do |import|
+        []
+      end)
 
     def initialize
       set_defaults!
@@ -64,11 +62,10 @@ module Importo
     def configure
       yield(config)
     end
-    alias setup configure
+    alias_method :setup, :configure
 
     def reset_config!
       @config = Configuration.new
     end
   end
-
 end

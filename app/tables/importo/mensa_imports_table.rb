@@ -24,7 +24,7 @@ if defined? Mensa
 
     def filtered_scope
       @filtered_scope = scope
-      @filtered_scope = @filtered_scope.where(importo_ownable_type: params[:ownable].split('#').first, importo_ownable_id: params[:ownable].split('#').last) if params[:ownable]
+      @filtered_scope = @filtered_scope.where(importo_ownable_type: params[:ownable].split("#").first, importo_ownable_id: params[:ownable].split("#").last) if params[:ownable]
       @filtered_scope = @filtered_scope.where(kind: params[:kind]) if params[:kind]
       @filtered_scope
     end
