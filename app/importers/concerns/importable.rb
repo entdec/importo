@@ -233,14 +233,14 @@ module Importable
 
   # Only when the block returns a record created in this import, it returns that record, otherwise nil
   #
-  #  record ||= created_this_import? do
+  #  record ||= only_current_import! do
   #    User.find_by(email: row[:email].downcase) if row[:email].present?
   #  end
   #
   # Only if the user was created this import will the block return the user found.
   #
   # @return [Object]
-  def created_this_import?(&block)
+  def only_current_import!(&block)
     record = yield
     record if record && @import.results.where("details->>'state' = ?", "success").where("details->>'id' = ? ", record.id).exists?
   end
