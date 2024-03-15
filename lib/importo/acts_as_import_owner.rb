@@ -5,7 +5,7 @@ module Importo
     extend ActiveSupport::Concern
 
     included do
-      has_many :import, as: :importo_ownable, class_name: 'Importo::Import'
+      has_many :import, as: :importo_ownable, class_name: "Importo::Import"
     end
   end
 end

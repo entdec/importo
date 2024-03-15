@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 module ImporterDsl
   extend ActiveSupport::Concern
@@ -32,10 +32,10 @@ module ImporterDsl
     # @param [Object] args
     # @param [Object] block which will filter the results before storing the value in the attribute, this is useful for lookups or reformatting
     def column(**options, &block)
-      name ||= options[:name]
-      name ||= options[:attribute]
-      options[:scope] = self.name.underscore.to_s.tr('/', '.').to_sym
-      columns[name] = Importo::ImportColumn.new(name: name, **options, &block)
+      column_name ||= options[:name]
+      column_name ||= options[:attribute]
+      options[:scope] = name.to_s.underscore.to_s.tr("/", ".").to_sym
+      columns[column_name] = Importo::ImportColumn.new(name: column_name, **options, &block)
     end
 
     def model(model = nil)

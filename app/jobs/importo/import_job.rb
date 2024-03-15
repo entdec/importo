@@ -6,11 +6,11 @@ module Importo
     queue_as Importo.config.queue_name
 
     sidekiq_retries_exhausted do |msg, _e|
-      attributes = msg['args'][0]
-      index = msg['args'][1]
-      import_id = msg['args'][2]
+      attributes = msg["args"][0]
+      index = msg["args"][1]
+      import_id = msg["args"][2]
 
-      execute_row(attributes, index, import_id, true, msg['bid'])
+      execute_row(attributes, index, import_id, true, msg["bid"])
     end
 
     sidekiq_retry_in do |_count, exception, _jobhash|
@@ -22,11 +22,6 @@ module Importo
 
     def perform(attributes, index, import_id)
       self.class.execute_row(attributes, index, import_id, false, bid)
-
-      # puts "Working within batch #{bid}"
-      # batch.jobs do
-      # add more jobs
-      # end
     end
 
     def self.execute_row(attributes, index, import_id, last_attempt, bid)
@@ -38,7 +33,7 @@ module Importo
       batch = Sidekiq::Batch.new(bid)
 
       if !import.completed? && batch.status.complete?
-        ImportJobCallback.new.on_complete(batch.status, { import_id: import_id })
+        ImportJobCallback.new.on_complete(batch.status, {import_id: import_id})
       end
     end
   end

@@ -7,7 +7,7 @@ module Importo
     belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
-    has_many :results, class_name: 'Importo::Result', dependent: :delete_all
+    has_many :results, class_name: "Importo::Result", dependent: :delete_all
 
     validates :kind, presence: true
     validates :original, presence: true
@@ -31,8 +31,8 @@ module Importo
         imprt.importer.state_changed(imprt, transition)
       end
 
-      after_transition any => :scheduled, do: :schedule_import
-      after_transition any => :reverting, do: :schedule_revert
+      after_transition any => :scheduled, :do => :schedule_import
+      after_transition any => :reverting, :do => :schedule_revert
 
       event :schedule do
         transition new: :scheduled
@@ -72,11 +72,11 @@ module Importo
     def content_validator
       unless importer.structure_valid?
         errors.add(:original,
-                   I18n.t('importo.errors.structure_invalid',
-                          invalid_headers: importer.invalid_header_names.join(', ')))
+          I18n.t("importo.errors.structure_invalid",
+            invalid_headers: importer.invalid_header_names.join(", ")))
       end
-    rescue StandardError => e
-      errors.add(:original, I18n.t('importo.errors.parse_error', error: e.message))
+    rescue => e
+      errors.add(:original, I18n.t("importo.errors.parse_error", error: e.message))
     end
 
     def importer

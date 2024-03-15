@@ -33,19 +33,19 @@ module Importo
     end
 
     def hint
-      I18n.t(".hint.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+      I18n.t(".hint.#{options[:attribute]}", scope: [:importers, options[:scope]], default: "") if options[:attribute]
     end
 
     def explanation
-      I18n.t(".explanation.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+      I18n.t(".explanation.#{options[:attribute]}", scope: [:importers, options[:scope]], default: "") if options[:attribute]
     end
-    
+
     def value
-      I18n.t(".value.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+      I18n.t(".value.#{options[:attribute]}", scope: [:importers, options[:scope]], default: "") if options[:attribute]
     end
 
     def example
-      I18n.t(".example.#{options[:attribute]}", scope: [:importers, options[:scope]], default: '') if options[:attribute]
+      I18n.t(".example.#{options[:attribute]}", scope: [:importers, options[:scope]], default: "") if options[:attribute]
     end
 
     ##
@@ -58,6 +58,10 @@ module Importo
     # Collection of values (name, id) that are valid for this field, if a name is entered it will be replaced by the id during pre-processing
     def collection
       options[:collection]
+    end
+
+    def delay
+      options[:delay]
     end
   end
 end

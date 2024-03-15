@@ -3,7 +3,7 @@
     = sts.form_for(@import) do |f|
       = f.input :kind, as: :hidden
       = sts.card :"importo_imports #{@import.kind}", title: t('.title'), icon: 'fad fa-file-spreadsheet' do |card|
-        - card.action
+        - card.with_action
           = f.submit
 
         .grid.grid-cols-12.gap-4
@@ -27,5 +27,8 @@
 .grid.grid-cols-1.gap-4.sm:grid-cols-3.mt-4
   .col-span-3.sm:col-span-3
     = sts.card :importo_imports, title: "#{@import.kind.humanize} imports", icon: 'fad fa-file-import', content_padding: false do |card|
-      = card.table(:importo_imports, parameters: { kind: @import.kind }, custom_views: false)
+      - if defined? Mensa
+        = sts.mensa(:importo_mensa_imports, parameters: { kind: @import.kind })
+      - else
+        = card.with_table(:importo_imports, parameters: { kind: @import.kind }, custom_views: false)
 

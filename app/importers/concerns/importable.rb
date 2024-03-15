@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 module Importable
   extend ActiveSupport::Concern
@@ -14,9 +14,9 @@ module Importable
   end
 
   def convert_values(row)
-    return row if row.instance_variable_get('@importo_converted_values')
+    return row if row.instance_variable_get(:@importo_converted_values)
 
-    row.instance_variable_set('@importo_converted_values', true)
+    row.instance_variable_set(:@importo_converted_values, true)
 
     columns.each do |k, col|
       next if col.proc.blank? || row[k].nil?
@@ -50,17 +50,17 @@ module Importable
   # It wil try and find the record by id, or initialize a new record with it's attributes set based on the mapping from columns
   #
   def populate(row, record = nil)
-    raise 'No attributes set for columns' unless columns.any? { |_, v| v.options[:attribute].present? }
+    raise "No attributes set for columns" unless columns.any? { |_, v| v.options[:attribute].present? }
 
     row = convert_values(row)
 
     result = if record
-               record
-             else
-               raise 'No model set' unless model
+      record
+    else
+      raise "No model set" unless model
 
-               model.find_or_initialize_by(id: row['id'])
-             end
+      model.find_or_initialize_by(id: row["id"])
+    end
 
     attributes = {}
     cols_to_populate = columns.select do |_, v|
@@ -76,10 +76,10 @@ module Importable
       next if !row[k].present? && col.options[:default].nil?
 
       attributes = if !row[k].present? && !col.options[:default].nil?
-                     set_attribute(attributes, attr, col.options[:default])
-                   else
-                     set_attribute(attributes, attr, row[k])
-                   end
+        set_attribute(attributes, attr, col.options[:default])
+      else
+        set_attribute(attributes, attr, row[k])
+      end
     end
 
     result.assign_attributes(attributes)
@@ -88,42 +88,66 @@ module Importable
   end
 
   #
-  # Mangle the record before saving
+  # Callbakcs
   #
-  def before_save(_record, _row)
-    # Implement optionally in child class to mangle
+  def before_build(_record, _row)
   end
 
-  #
-  # Any updates that have to be done after saving
-  #
+  def around_build(_record, _row)
+    yield
+  end
+
+  def after_build(_record, _row)
+  end
+
+  def before_save(_record, _row)
+  end
+
+  def around_save(_record, _row)
+    yield
+  end
+
   def after_save(_record, _row)
-    # Implement optionally in child class to perform other updates
+  end
+
+  def before_validate(_record, _row)
+  end
+
+  def around_validate(_record, _row)
+    yield
+  end
+
+  def after_validate(_record, _row)
   end
 
   #
   # Does the actual import
   #
   def import!
-    raise ArgumentError, 'Invalid data structure' unless structure_valid?
+    raise ArgumentError, "Invalid data structure" unless structure_valid?
 
     batch = Sidekiq::Batch.new
     batch.description = "#{import.original.filename} - #{import.kind}"
-    # this will call "ImportJobCallback.new.on_complete" when all jobs are executed at least once irrespective of failure or success, not ideal with when we have set retry on a job
-    # batch.on(:complete, Importo::ImportJobCallback, import_id: import.id)
-    # this will call "ImportJobCallback.new.on_success" when all jobs are successfully executed
     batch.on(:success, Importo::ImportJobCallback, import_id: import.id)
 
     batch.jobs do
+      column_with_delay = columns.select { |k, v| v.delay.present? }
       loop_data_rows do |attributes, index|
-        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id)
+        if column_with_delay.present?
+          delay = column_with_delay.map do |k, v|
+            next unless attributes[k].present?
+            v.delay.call(attributes[k])
+          end.compact
+        end
+        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id) if delay.present?
+        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id) unless delay.present?
       end
     end
 
     true
-  rescue StandardError => e
+  rescue => e
     @import.result_message = "Exception: #{e.message}"
-    Rails.logger.error "Importo exception: #{e.message} backtrace #{e.backtrace.join(';')}"
+    Rails.logger.error "Importo exception: #{e.message} backtrace #{e.backtrace.join(";")}"
     @import.failure!
 
     false
@@ -134,52 +158,63 @@ module Importable
     row_hash = Digest::SHA256.base64digest(attributes.inspect)
     duplicate_import = nil
 
-    begin
-      ActiveRecord::Base.transaction(requires_new: true) do
-        register_result(index, hash: row_hash, state: :processing)
+    run_callbacks :row_import do
+      record = nil
+      before_build(record, attributes)
+      around_build(record, attributes) do
         record = build(attributes)
+      end
+      after_build(record, attributes)
+
+      before_validate(record, attributes)
+      around_validate(record, attributes) do
         record.validate!
-        before_save(record, attributes)
-        record.save!
-        after_save(record, attributes)
+      end
+      after_validate(record, attributes)
+
+      ActiveRecord::Base.transaction do
+        register_result(index, hash: row_hash, state: :processing)
+
+        model.with_advisory_lock(:importo) do
+          before_save(record, attributes)
+          around_save(record, attributes) do
+            record.save!
+          end
+          after_save(record, attributes)
+        end
+
         duplicate_import = duplicate?(row_hash, record.id)
         raise Importo::DuplicateRowError if duplicate_import
 
         register_result(index, class: record.class.name, id: record.id, state: :success)
       end
-
-      run_callbacks(:row_import) do
-      end
-
-      record
-    rescue Importo::DuplicateRowError
-      record_id = duplicate_import.results.find { |data| data['hash'] == row_hash }['id']
-      register_result(index, id: record_id, state: :duplicate,
-                             message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
-
-      run_callbacks(:row_import) do
-      end
-      nil
-    rescue Importo::RetryError => e
-      raise e unless last_attempt
-
-      run_callbacks(:row_import) do
-      end
-
-      errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
-      error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
-      failure(attributes, record, index, e)
-      register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
-      nil
-    rescue StandardError => e
-      run_callbacks(:row_import) do
-      end
-      errors = record.respond_to?(:errors) && record.errors.full_messages.join(', ')
-      error_message = "#{e.message} (#{e.backtrace.first.split('/').last})"
-      failure(attributes, record, index, e)
-      register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
-      nil
     end
+
+    record
+  rescue Importo::DuplicateRowError
+    record_id = duplicate_import.results.find { |data| data["hash"] == row_hash }["id"]
+    register_result(index, id: record_id, state: :duplicate,
+      message: "Row already imported successfully on #{duplicate_import.created_at.to_date}")
+
+    run_callbacks(:row_import, :after)
+    nil
+  rescue Importo::RetryError => e
+    raise e unless last_attempt
+
+    errors = record.respond_to?(:errors) && record.errors.full_messages.join(", ")
+    error_message = "#{e.message} (#{e.backtrace.first.split("/").last})"
+    failure(attributes, record, index, e)
+    register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
+    nil
+  rescue => e
+    raise Importo::RetryError.new("ActiveRecord::RecordInvalid", 5) if !last_attempt && e.is_a?(ActiveRecord::RecordInvalid)
+    raise Importo::RetryError.new("ActiveRecord::RecordNotUnique", 5) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
+    errors = record.respond_to?(:errors) && record.errors.full_messages.join(", ")
+    error_message = "#{e.message} (#{e.backtrace.first.split("/").last})"
+    failure(attributes, record, index, e)
+    register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
+    run_callbacks(:row_import, :after)
+    nil
   end
 
   private
@@ -188,11 +223,25 @@ module Importable
   # Overridable failure method
   #
   def failure(_row, _record, index, exception)
-    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(';')}"
+    Rails.logger.error "#{exception.message} processing row #{index}: #{exception.backtrace.join(";")}"
   end
 
   def set_attribute(hash, path, value)
-    tmp_hash = path.to_s.split('.').reverse.inject(value) { |h, s| { s => h } }
+    tmp_hash = path.to_s.split(".").reverse.inject(value) { |h, s| {s => h} }
     hash.deep_merge(tmp_hash)
+  end
+
+  # Only when the block returns a record created in this import, it returns that record, otherwise nil
+  #
+  #  record ||= created_this_import? do
+  #    User.find_by(email: row[:email].downcase) if row[:email].present?
+  #  end
+  #
+  # Only if the user was created this import will the block return the user found.
+  #
+  # @return [Object]
+  def created_this_import?(&block)
+    record = yield
+    record if record && @import.results.where("details->>'state' = ?", "success").where("details->>'id' = ? ", record.id).exists?
   end
 end

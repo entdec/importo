@@ -18,7 +18,7 @@ module Importo
       @import = Import.new(import_params.merge(locale: I18n.locale,
                                                importo_ownable: Importo.config.current_import_owner.call))
       if @import.valid? && @import.schedule!
-        redirect_to action: :index
+        redirect_to importo.new_import_path(params[:kind] || @import.kind)
       else
         Signum.error(Current.user, text: t('.flash.error', error: @import.errors&.full_messages&.join('.')))
         render :new

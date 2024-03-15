@@ -6,7 +6,7 @@ module Importo
       sleep 1
 
       context.import.importer.revert!
-    rescue StandardError
+    rescue
       context.import.failure!
       context.fail!
     end
