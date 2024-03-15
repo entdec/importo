@@ -32,7 +32,7 @@ module Importo
 
       batch = Sidekiq::Batch.new(bid)
 
-      if !import.completed? && batch.status.complete?
+      if !import.completed? && import.can_complete? && batch.status.complete?
         ImportJobCallback.new.on_complete(batch.status, {import_id: import_id})
       end
     end

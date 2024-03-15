@@ -28,7 +28,7 @@ module Importable
       if col.collection
         # see if the value is part of the collection  of (name, id) pairs, error if not.
         value = col.collection.find { |item| item.last == row[k] || item.first == row[k] }&.last
-        raise StandardError, "#{row[k]} is not a valid value for #{col.name}" if value.nil? && !row[k].nil?
+        raise StandardError, "#{row[k]} is not a valid value for #{col.name}" if value.nil? && row[k].present?
       else
         value ||= row[k]
       end
@@ -160,20 +160,21 @@ module Importable
 
     run_callbacks :row_import do
       record = nil
-      before_build(record, attributes)
-      around_build(record, attributes) do
-        record = build(attributes)
-      end
-      after_build(record, attributes)
 
-      before_validate(record, attributes)
-      around_validate(record, attributes) do
-        record.validate!
-      end
-      after_validate(record, attributes)
-
-      ActiveRecord::Base.transaction do
+      ActiveRecord::Base.transaction(isolation: :read_committed) do
         register_result(index, hash: row_hash, state: :processing)
+
+        before_build(record, attributes)
+        around_build(record, attributes) do
+          record = build(attributes)
+        end
+        after_build(record, attributes)
+
+        before_validate(record, attributes)
+        around_validate(record, attributes) do
+          record.validate!
+        end
+        after_validate(record, attributes)
 
         model.with_advisory_lock(:importo) do
           before_save(record, attributes)
@@ -207,8 +208,8 @@ module Importable
     register_result(index, class: record.class.name, state: :failure, message: error_message, errors: errors)
     nil
   rescue => e
-    raise Importo::RetryError.new("ActiveRecord::RecordInvalid", 5) if !last_attempt && e.is_a?(ActiveRecord::RecordInvalid)
-    raise Importo::RetryError.new("ActiveRecord::RecordNotUnique", 5) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
+    # We rescue ActiveRecord::RecordNotUnique here, due to how transactions work, some row imports may have started the transaction and the current row doesn't see the results
+    raise Importo::RetryError.new("ActiveRecord::RecordNotUnique", 2) if !last_attempt && e.is_a?(ActiveRecord::RecordNotUnique)
     errors = record.respond_to?(:errors) && record.errors.full_messages.join(", ")
     error_message = "#{e.message} (#{e.backtrace.first.split("/").last})"
     failure(attributes, record, index, e)
@@ -241,7 +242,9 @@ module Importable
   #
   # @return [Object]
   def only_current_import!(&block)
-    record = yield
-    record if record && @import.results.where("details->>'state' = ?", "success").where("details->>'id' = ? ", record.id).exists?
+    ActiveRecord::Base.uncached do
+      record = yield
+      record if record && @import.results.where("details->>'state' = ?", "success").where("details->>'id' = ? ", record.id).exists?
+    end
   end
 end

@@ -9,14 +9,20 @@ module Importo
         import.result.attach(io: import.importer.results_file, filename: import.importer.file_name("results"),
           content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
-        import.result_message = I18n.t("importo.importers.result_message",
-          nr: import.results.where("details @> ?", {state: "success"}.to_json).count, of: import.importer.send(:row_count))
-        import.complete! if import.can_complete?
+        ActiveRecord::Base.uncached do
+          import.result_message = I18n.t("importo.importers.result_message",
+            nr: import.results.where("details @> ?", {state: "success"}.to_json).count, of: import.importer.send(:row_count))
+        end
+
+        if import.can_complete?
+          import.complete!
+        else
+          import.save!
+        end
       end
     end
 
     def on_success(status, options)
-      # puts "#{options['uid']}'s batch succeeded.  Kudos!"
       on_complete(status, options)
     end
   end

@@ -45,7 +45,7 @@ module Importo
       end
 
       event :complete do
-        transition importing: :completed
+        transition importing: :completed, if: ->(import) { import.no_processing? && import.results.count == import.importer.send(:row_count) }
       end
 
       event :failure do
@@ -81,6 +81,30 @@ module Importo
 
     def importer
       @importer ||= "#{kind.camelize}Importer".constantize.new(self)
+    end
+
+    def failure?
+      results.where("details @> ?", '{"state":"failure"}').any?
+    end
+
+    def no_failure?
+      results.where("details @> ?", '{"state":"failure"}').none?
+    end
+
+    def success?
+      results.where("details @> ?", '{"state":"success"}').any?
+    end
+
+    def no_succes?
+      results.where("details @> ?", '{"state":"success"}').none?
+    end
+
+    def processing?
+      results.where("details @> ?", '{"state":"processing"}').any?
+    end
+
+    def no_processing?
+      results.where("details @> ?", '{"state":"processing"}').none?
     end
 
     private
