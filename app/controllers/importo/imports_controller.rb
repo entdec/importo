@@ -9,8 +9,8 @@ module Importo
     end
 
     def create
-      unless import_params
-        @import = Import.new(kind: params[:kind], locale: I18n.locale)
+      unless  import_params["original"].present?
+        @import = Import.new(kind: import_params[:kind], locale: I18n.locale)
         Signum.error(Current.user, text: t('.flash.no_file'))
         render :new
         return
