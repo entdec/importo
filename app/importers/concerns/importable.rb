@@ -161,7 +161,7 @@ module Importable
     run_callbacks :row_import do
       record = nil
 
-      ActiveRecord::Base.transaction(isolation: :read_committed) do
+      ActiveRecord::Base.transaction do
         register_result(index, hash: row_hash, state: :processing)
 
         before_build(record, attributes)
