@@ -6,11 +6,38 @@ if defined? Mensa
       model Importo::Import
 
       column(:created_at)
-      column(:user)
+      column(:user) do
+        attribute "TRIM(CONCAT(users.first_name, ' ', users.last_name))"
+      end
       column(:kind)
-      column(:original)
+      column(:original) do
+        sortable false
+        render do
+          html do |import|
+            link_to(import.original.filename, main_app.rails_blob_path(import.original, disposition: "attachment"), target: "_blank")
+          end
+        end
+      end
+
       column(:state)
-      column(:result)
+
+      column(:result_message) do
+        internal true
+      end
+
+      column(:result) do
+        sortable false
+        render do
+          html do |import|
+            if import.result.attached?
+              link_to(import.result_message, main_app.rails_blob_path(import.result, disposition: "attachment"), target: "_blank")
+            else
+              import.result_message
+            end
+          end
+        end
+      end
+
 
       order created_at: :desc
     end
