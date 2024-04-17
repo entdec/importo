@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-if defined? Mensa
+if defined? Mensa && defined? sts.mensa
   class Importo::MensaImportsTable < Mensa::Base
     definition do
       model Importo::Import
