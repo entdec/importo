@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-class Importo::ImportsTable < ActionTable::ActionTable
+if defined? ActionTable
+  class Importo::ImportsTable < ActionTable::ActionTable
   model Importo::Import
 
   column(:created_at, html_value: proc { |import| l(import.created_at.in_time_zone(Time.zone), format: :short).to_s })
@@ -31,5 +32,9 @@ class Importo::ImportsTable < ActionTable::ActionTable
   def scope
     @scope = Importo.config.admin_visible_imports.call
     @scope
+  end
+end
+else
+  class Importo::ImportsTable
   end
 end
