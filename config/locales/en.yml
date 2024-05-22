@@ -36,6 +36,7 @@ en:
       create:
         flash:
           no_file: Import failed, please upload a file.
+          no_file_selected: No file is selected for import.
           error: Import failed, there were problems %{error}.
           success: "Import scheduled with id %{id}, you will get an email with the results."
     errors:
