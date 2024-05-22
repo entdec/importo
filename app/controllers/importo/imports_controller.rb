@@ -20,7 +20,11 @@ module Importo
       if @import.valid? && @import.schedule!
         redirect_to importo.new_import_path(params[:kind] || @import.kind)
       else
-        Signum.error(Current.user, text: t('.flash.error', error: @import.errors&.full_messages&.join('.')))
+        if !@import.original.attached?
+          Signum.error(Current.user, text: t('.flash.no_file_selected'))
+        else
+          Signum.error(Current.user, text: t('.flash.error', error: @import.errors&.full_messages&.join('.')))
+        end
         render :new
       end
     end
