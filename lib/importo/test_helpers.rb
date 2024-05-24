@@ -23,13 +23,14 @@ module Importo
       Roo::Excelx.new(excel.set_encoding("BINARY"))
     end
 
-    def import_sheet(kind, sheet, filename: 'import.xlsx', locale: I18n.locale, owner: users(:admin))
+    def import_sheet(kind, sheet, filename: "import.xlsx", locale: I18n.locale, owner: @owner)
       import = Importo::Import.new(kind: kind, locale: locale, importo_ownable: owner)
 
       import.original.attach(io: sheet, filename: filename, content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", identify: false)
       import.save!
 
       ImportService.perform(import: import)
+      ImportJobCallback.new.on_complete(nil, {import_id: import.id})
       import
     end
   end
