@@ -9,7 +9,7 @@ module Importo
     end
   else
     class ImportContext < ApplicationContext
-      attribute :import, :model, class_name: 'Importo::Import'
+      attribute :import, :model, class_name: "Importo::Import"
     end
 
   end

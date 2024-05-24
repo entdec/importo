@@ -38,7 +38,6 @@ if defined? Mensa
         end
       end
 
-
       order created_at: :desc
     end
 
