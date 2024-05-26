@@ -2,7 +2,7 @@ module Importo
   class ImportJobCallback
     include Rails.application.routes.url_helpers
 
-    def on_complete(_status, options)
+    def on_complete(options)
       options = options.deep_stringify_keys
       import = Import.find(options["import_id"])
       if import.present?
@@ -20,10 +20,6 @@ module Importo
           import.save!
         end
       end
-    end
-
-    def on_success(status, options)
-      on_complete(status, options)
     end
   end
 end

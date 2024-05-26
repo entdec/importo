@@ -30,10 +30,10 @@ module Importo
       import = Import.find(import_id)
       record = import.importer.process_data_row(attributes, index, last_attempt: last_attempt)
 
-      batch = Sidekiq::Batch.new(bid)
+      batch = Importo::SidekiqBatchAdapter.find(bid)
 
-      if !import.completed? && import.can_complete? && batch.status.complete?
-        ImportJobCallback.new.on_complete(batch.status, {import_id: import_id})
+      if !import.completed? && import.can_complete? && batch.finished?
+        ImportJobCallback.new.on_complete(import_id: import_id)
       end
     end
   end

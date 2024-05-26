@@ -18,7 +18,7 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActiveSupport::TestCase.fixtures :all
 end
 
-require "pry"
+require "debug"
 
 # require 'minitest/reporters'
 # MiniTest::Reporters.use!

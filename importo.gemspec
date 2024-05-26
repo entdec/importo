@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "minitest", "~> 5.11"
   s.add_development_dependency "minitest-reporters", "~> 1.1"
   s.add_development_dependency "pg"
-  s.add_development_dependency "pry"
+  s.add_development_dependency "debug"
   s.add_development_dependency "pry-rails", "~> 0.3"
   s.add_development_dependency "rubocop", ">= 1"
   s.add_development_dependency "standard", ">= 1"
