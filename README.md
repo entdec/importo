@@ -92,8 +92,12 @@ Add this line to your application's Gemfile:
 gem 'importo'
 ```
 
-Importo depends on Sidekiq Pro's batch functionality, 
-though you can use [sidekiq-batch](https://github.com/entdec/sidekiq-batch) as a drop-in for that.
+Importo needs Batch functionality, this can either be:
+- Sidekiq Pro's batch functionality,
+- [sidekiq-batch](https://github.com/entdec/sidekiq-batch)
+- GoodJob's Batch 
+
+Additionally it either needs [Servitium](https://github.com/entdec/servitium) or [Facio](https://github.com/entdec/facio)
 
 And then execute:
 

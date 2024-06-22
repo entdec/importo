@@ -1,10 +1,13 @@
 module Importo
-  class ImportJobCallback
+  class ImportJobCallback < ActiveJob::Base
     include Rails.application.routes.url_helpers
 
-    def on_complete(options)
-      options = options.deep_stringify_keys
-      import = Import.find(options["import_id"])
+    def perform(batch, params)
+      import = Import.find(batch.properties[:import_id])
+      complete_import(import)
+    end
+
+    def complete_import(import)
       if import.present?
         import.result.attach(io: import.importer.results_file, filename: import.importer.file_name("results"),
           content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")

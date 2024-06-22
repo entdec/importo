@@ -1,27 +1,29 @@
 module Importo
-  class ImportJob
-    include Sidekiq::Job
-    sidekiq_options retry: 5
-    # queue_as :integration
+  class ImportJob < ActiveJob::Base
     queue_as Importo.config.queue_name
+    include GoodJob::ActiveJobExtensions::Batches
 
-    sidekiq_retries_exhausted do |msg, _e|
-      attributes = msg["args"][0]
-      index = msg["args"][1]
-      import_id = msg["args"][2]
+    # retry_on Importo::RetryError do |job, error|
+    #   attributes = job["args"][0]
+    #   index = job["args"][1]
+    #   import_id = job["args"][2]
 
-      execute_row(attributes, index, import_id, true, msg["bid"])
-    end
+    #   binding.break
 
-    sidekiq_retry_in do |_count, exception, _jobhash|
-      case exception
-      when Importo::RetryError
-        exception.delay
-      end
-    end
+    #   execute_row(attributes, index, import_id, true, job["bid"])
+    # end
 
     def perform(attributes, index, import_id)
-      self.class.execute_row(attributes, index, import_id, false, bid)
+      puts "GET HERE?!"
+      puts "batch_id: #{batch}"
+      batch_id = if defined?(bid)
+        bid
+      else
+        batch.id
+      end
+      batch
+
+      self.class.execute_row(attributes, index, import_id, false, batch_id)
     end
 
     def self.execute_row(attributes, index, import_id, last_attempt, bid)
@@ -30,11 +32,12 @@ module Importo
       import = Import.find(import_id)
       record = import.importer.process_data_row(attributes, index, last_attempt: last_attempt)
 
-      batch = Importo::SidekiqBatchAdapter.find(bid)
+      batch = Importo.config.batch_adapter.find(bid)
 
-      if !import.completed? && import.can_complete? && batch.finished?
-        ImportJobCallback.new.on_complete(import_id: import_id)
-      end
+      # Obsolete
+      # if !import.completed? && import.can_complete? && batch.finished?
+      #   ImportJobCallback.perform_now(import)
+      # end
     end
   end
 end

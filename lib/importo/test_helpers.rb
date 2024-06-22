@@ -30,7 +30,7 @@ module Importo
       import.save!
 
       ImportService.perform(import: import)
-      ImportJobCallback.new.on_complete({import_id: import.id})
+      # Importo::ImportJobCallback.perform_now(import)
       import
     end
   end

@@ -23,7 +23,6 @@ Gem::Specification.new do |s|
   s.add_dependency "roo", "~> 2.7"
   s.add_dependency "roo-xls", "~> 1.1"
   s.add_dependency "satis", "~> 2"
-  s.add_dependency "servitium", ">= 1.2"
   s.add_dependency "signum", "~> 0.3"
   s.add_dependency "slim", "> 3.0"
   s.add_dependency "state_machines-activerecord", "~> 0.5"
