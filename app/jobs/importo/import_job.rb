@@ -14,8 +14,6 @@ module Importo
     # end
 
     def perform(attributes, index, import_id)
-      puts "GET HERE?!"
-      puts "batch_id: #{batch}"
       batch_id = if defined?(bid)
         bid
       else
