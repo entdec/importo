@@ -1,5 +1,5 @@
 module Importo
-  class ImportJob < ActiveJob::Base
+  class ImportJob < ApplicationJob
     queue_as Importo.config.queue_name
     include GoodJob::ActiveJobExtensions::Batches
 
