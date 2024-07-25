@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "importo/test_helpers"
 
 class TranslatedAccountImporter < Importo::BaseImporter
   includes_header true
@@ -56,6 +55,9 @@ module Importo
 
     setup do
       @owner = Account.create!(name: "test")
+      (ActiveJob::Base.descendants << ActiveJob::Base).each do |job_class|
+        job_class.disable_test_adapter
+      end
     end
 
     test "imports an excel file" do

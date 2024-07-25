@@ -1,3 +1,13 @@
+if !defined?(Sidekiq::Batch)
+  module Sidekiq
+    class Batch
+      def self.new(*)
+        raise NotImplementedError, "Sidekiq::Batch is not available. Please install the sidekiq-pro or sidekiq-batch gem."
+      end
+    end
+  end
+end
+
 module Importo
   class SidekiqBatchAdapter
     attr_reader :description
