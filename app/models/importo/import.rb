@@ -76,7 +76,7 @@ module Importo
             invalid_headers: importer.invalid_header_names.join(", ")))
       end
     rescue => e
-      errors.add(:original, I18n.t("importo.errors.parse_error", error: e.message))
+      errors.add(:original, I18n.t("importo.errors.parse_error", error: e.message)) unless state == "failed"
     end
 
     def importer

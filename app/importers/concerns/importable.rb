@@ -126,11 +126,12 @@ module Importable
   def import!
     raise ArgumentError, "Invalid data structure" unless structure_valid?
 
-    batch = Sidekiq::Batch.new
+    batch = Importo::SidekiqBatchAdapter.new
     batch.description = "#{import.original.filename} - #{import.kind}"
-    batch.on(:success, Importo::ImportJobCallback, import_id: import.id)
+    batch.properties = {import_id: import.id}
+    batch.on_success("Importo::ImportJobCallback")
 
-    batch.jobs do
+    batch.add do
       column_with_delay = columns.select { |k, v| v.delay.present? }
       loop_data_rows do |attributes, index|
         if column_with_delay.present?
@@ -161,7 +162,7 @@ module Importable
     run_callbacks :row_import do
       record = nil
 
-      ActiveRecord::Base.transaction(isolation: :read_committed) do
+      ActiveRecord::Base.transaction do
         register_result(index, hash: row_hash, state: :processing)
 
         before_build(record, attributes)
