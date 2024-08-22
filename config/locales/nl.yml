@@ -25,6 +25,7 @@ nl:
       create:
         flash:
           no_file: Import mislukt, upload een bestand.
+          no_file_selected: No file is selected for import.
           error: Import mislukt, er waren problemen, voor details zie hieronder.
           success: "Import geplanned met id %{id}, je krijgt een email met de resultaten."
     errors:
