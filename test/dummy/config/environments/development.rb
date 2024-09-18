@@ -28,6 +28,8 @@ Rails.application.configure do
     config.cache_store = :null_store
   end
 
+  config.active_job.queue_adapter = :good_job
+
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false
 
