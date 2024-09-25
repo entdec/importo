@@ -132,6 +132,7 @@ module Importable
     batch.on_success("Importo::ImportJobCallback")
 
     batch.add do
+      bid = batch.bid
       column_with_delay = columns.select { |k, v| v.delay.present? }
       loop_data_rows do |attributes, index|
         if column_with_delay.present?
@@ -140,8 +141,8 @@ module Importable
             v.delay.call(attributes[k])
           end.compact
         end
-        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id) if delay.present?
-        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id) unless delay.present?
+        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id, bid) if delay.present?
+        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id, bid) unless delay.present?
       end
     end
 
