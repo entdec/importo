@@ -10,7 +10,7 @@ module Importo
 
     delegate :description=, to: :@instance
 
-    def on_finish(job)
+    def on_success(job)
       @instance.on(:complete, job.constantize, properties)
     end
 
