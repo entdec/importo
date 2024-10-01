@@ -76,7 +76,8 @@ module Importo
             invalid_headers: importer.invalid_header_names.join(", ")))
       end
     rescue => e
-      errors.add(:original, I18n.t("importo.errors.parse_error", error: e.message)) unless state == "failed"
+      Rails.logger.info "Importo failed excpetion: #{e.message} backtrace #{e.backtrace.join(";")}"
+      errors.add(:original, I18n.t("importo.errors.parse_error", error: e.message))
     end
 
     def importer
