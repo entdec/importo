@@ -1,4 +1,6 @@
-# frozen_string_literal: true
+
+
+# frozen_string_literal: true-
 
 require "axlsx"
 require "roo/excelx"
@@ -30,7 +32,7 @@ module Importo
       import.save!
 
       ImportService.perform(import: import)
-      ImportJobCallback.new.on_success("success", {import_id: import.id})
+      ImportJobCallback.new.on_complete({import_id: import.id})
       import
     end
   end
