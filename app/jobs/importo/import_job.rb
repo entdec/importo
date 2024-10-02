@@ -20,7 +20,7 @@ module Importo
       end
     end
 
-    def perform(attributes, index, import_id, bid)
+    def perform(attributes, index, import_id)
       self.class.execute_row(attributes, index, import_id, false, bid)
     end
 
@@ -33,8 +33,9 @@ module Importo
       batch = Importo::SidekiqBatchAdapter.find(bid)
 
       if !import.completed? && import.can_complete? && batch.finished?
-        ImportJobCallback.new.on_success(batch.status, {import_id: import_id})
+        ImportJobCallback.new.on_complete({import_id: import.id})
       end
+
     end
   end
 end
