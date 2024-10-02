@@ -33,7 +33,7 @@ module Importo
       batch = Importo::SidekiqBatchAdapter.find(bid)
 
       if !import.completed? && import.can_complete? && batch.finished?
-        ImportJobCallback.new.on_complete({import_id: import.id})
+        ImportJobCallback.new.on_complete(batch.status, {import_id: import.id})
       end
 
     end
