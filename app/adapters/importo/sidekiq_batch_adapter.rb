@@ -8,7 +8,7 @@ module Importo
       @instance = Sidekiq::Batch.new
     end
 
-    delegate :description=, to: :@instance
+    delegate :description=, :status, to: :@instance
 
     def on_success(job)
       @instance.on(:complete, job.constantize, properties)
