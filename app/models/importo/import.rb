@@ -111,13 +111,11 @@ module Importo
     private
 
     def schedule_import
-      # Since servitium isn't ActiveJob we can't implement a wait, this should be replaced
-      sleep(1)
-      ImportService.perform_later(import: self)
+      ImportScheduleJob.perform_in(5.seconds, id)
     end
 
     def schedule_revert
-      RevertService.perform_later(import: self)
+      ImportRevertJob.perform_in(5.seconds, id)
     end
   end
 end
