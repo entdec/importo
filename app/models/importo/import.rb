@@ -111,6 +111,8 @@ module Importo
     private
 
     def schedule_import
+      # Since servitium isn't ActiveJob we can't implement a wait, this should be replaced
+      sleep(1)
       ImportService.perform_later(import: self)
     end
 
