@@ -126,7 +126,7 @@ module Importable
   def import!
     raise ArgumentError, "Invalid data structure" unless structure_valid?
 
-    batch = Importo::SidekiqBatchAdapter.new
+    batch = Importo.config.batch_adapter.new
     batch.description = "#{import.original.filename} - #{import.kind}"
     batch.properties = {import_id: import.id}
     batch.on_success("Importo::ImportJobCallback")

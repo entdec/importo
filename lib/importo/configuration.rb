@@ -3,9 +3,19 @@
 module Importo
   module Options
     module ClassMethods
-      def option(name, default: nil)
-        attr_accessor(name)
-        schema[name] = default
+      def option(name, default: nil, proc: false)
+        attr_writer(name)
+        schema[name] = {default: default, proc: proc}
+        if schema[name][:proc]
+          define_method(name) do |*params|
+            value = instance_variable_get(:"@#{name}")
+            instance_exec(*params, &value)
+          end
+        else
+          define_method(name) do
+            instance_variable_get(:"@#{name}")
+          end
+        end
       end
 
       def schema
@@ -14,8 +24,8 @@ module Importo
     end
 
     def set_defaults!
-      self.class.schema.each do |name, default|
-        instance_variable_set(:"@#{name}", default)
+      self.class.schema.each do |name, options|
+        instance_variable_set(:"@#{name}", options[:default])
       end
     end
 
@@ -40,6 +50,10 @@ module Importo
       default: lambda do |import|
         false
       end)
+
+    # You can either use GoodJob::Batch or Importo::SidekiqBatchAdapter
+    option :batch_adapter, default: lambda { Importo::SidekiqBatchAdapter }, proc: true
+    option :import_job_base_class, default: "Object"
 
     # Extra links relevant for this import: { link_name: { icon: 'far fa-..', url: '...' } }
     option(:admin_extra_links,

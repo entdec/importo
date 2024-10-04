@@ -7,13 +7,10 @@ module Importo
       import = Import.find(options["import_id"])
       if import.present?
         results_file = import.importer.results_file
-        if results_file.is_a?(StringIO)
-          import.result.attach(io: results_file, filename: import.importer.file_name("results"),
-                               content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        else
-          import.result.attach(io: File.open(results_file), filename: import.importer.file_name("results"),
-                               content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        end
+        results_file = results_file.is_a?(StringIO) ? results_file : File.open(results_file)
+
+        import.result.attach(io: results_file, filename: import.importer.file_name("results"),
+          content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
         ActiveRecord::Base.uncached do
           import.result_message = I18n.t("importo.importers.result_message",
