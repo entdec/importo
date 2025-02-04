@@ -8,7 +8,7 @@ if !defined?(Sidekiq::Batch)
   end
 end
 
-require "importo/import_job"
+require_relative "../../../app/jobs/importo/import_job"
 
 module Importo
   class SidekiqBatchAdapter
