@@ -16,7 +16,7 @@ module Importo
     attr_accessor :properties
     attr_writer :instance
 
-    delegate :description=, :status, to: :@instance
+    delegate :description=, to: :@instance
 
     def initialize
       @instance = Sidekiq::Batch.new
@@ -33,7 +33,8 @@ module Importo
     end
 
     def finished?
-      @instance.status.complete?
+      status = Sidekiq::Batch::Status.new( @instance.bid)
+      status.complete?
     end
 
     class << self
