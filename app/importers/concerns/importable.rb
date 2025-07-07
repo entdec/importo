@@ -129,7 +129,11 @@ module Importable
     batch = Importo.config.batch_adapter.new
     batch.description = "#{import.original.filename} - #{import.kind}"
     batch.properties = {import_id: import.id}
-    batch.on_success = "Importo::ImportJobCallback"
+    if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
+      batch.on_success("Importo::ImportJobCallback")
+    else
+      batch.on_success = "Importo::ImportJobCallback"
+    end
 
     batch.add do
       column_with_delay = columns.select { |k, v| v.delay.present? }

@@ -14,23 +14,16 @@ module Importo
     # end
 
     def perform(attributes, index, import_id)
-      batch_id = if defined?(bid)
-        bid
-      else
-        batch.id
-      end
-      batch
-
-      self.class.execute_row(attributes, index, import_id, false, batch_id)
+      self.class.execute_row(attributes, index, import_id, false)
     end
 
-    def self.execute_row(attributes, index, import_id, last_attempt, bid)
+    def self.execute_row(attributes, index, import_id, last_attempt)
       attributes = JSON.load(attributes).deep_symbolize_keys if attributes.is_a?(String)
 
       import = Import.find(import_id)
       record = import.importer.process_data_row(attributes, index, last_attempt: last_attempt)
 
-      batch = Importo.config.batch_adapter.find(bid)
+      # batch = Importo.config.batch_adapter.find(bid)
 
       # Obsolete
       # if !import.completed? && import.can_complete? && batch.finished?
