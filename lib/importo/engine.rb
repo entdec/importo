@@ -18,6 +18,9 @@ module Importo
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
           Importo::Import.include(ImportHelpers)
+
+          # For now put this here to ensure compatibility
+          require "importo/adapters/sidekiq_batch_adapter"
         end
       end
     end

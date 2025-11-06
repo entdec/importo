@@ -54,6 +54,10 @@ module Importo
         false
       end)
 
+    # You can either use GoodJob::Batch or Importo::SidekiqBatchAdapter
+    option :batch_adapter, default: lambda { Importo::SidekiqBatchAdapter }, proc: true
+    option :import_job_base_class, default: "Object"
+
     # Extra links relevant for this import: { link_name: { icon: 'far fa-..', url: '...' } }
     option(:admin_extra_links,
       default: lambda do |import|

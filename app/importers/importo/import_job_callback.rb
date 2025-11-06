@@ -10,7 +10,10 @@ module Importo
 
     def complete_import(import)
       if import.present?
-        import.result.attach(io: import.importer.results_file, filename: import.importer.file_name("results"),
+        results_file = import.importer.results_file
+        results_file = results_file.is_a?(StringIO) ? results_file : File.open(results_file)
+
+        import.result.attach(io: results_file, filename: import.importer.file_name("results"),
           content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
         ActiveRecord::Base.uncached do

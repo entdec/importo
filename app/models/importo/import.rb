@@ -76,6 +76,7 @@ module Importo
             invalid_headers: importer.invalid_header_names.join(", ")))
       end
     rescue => e
+      Rails.logger.info "Importo failed excpetion: #{e.message} backtrace #{e.backtrace.join(";")}"
       errors.add(:original, I18n.t("importo.errors.parse_error", error: e.message))
     end
 
@@ -110,11 +111,11 @@ module Importo
     private
 
     def schedule_import
-      ImportService.perform_later(import: self)
+      ImportScheduleJob.perform_in(5.seconds, id)
     end
 
     def schedule_revert
-      RevertService.perform_later(import: self)
+      ImportRevertJob.perform_in(5.seconds, id)
     end
   end
 end

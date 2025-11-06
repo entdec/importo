@@ -6,8 +6,7 @@ module Importo
       context.import.import!
       context.import.importer.import!
     rescue
-      context.import.failure!
-      context.fail!
+        context.import.failure!
     end
   end
 end

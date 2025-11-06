@@ -139,10 +139,10 @@ module Importable
       column_with_delay = columns.select { |k, v| v.delay.present? }
       loop_data_rows do |attributes, index|
         if column_with_delay.present?
-          delay = column_with_delay.map do |k, v|
+          delay = column_with_delay.filter_map do |k, v|
             next unless attributes[k].present?
             v.delay.call(attributes[k])
-          end.compact
+          end
         end
         Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_later(JSON.dump(attributes), index, import.id) if delay.present?
         Importo::ImportJob.perform_later(JSON.dump(attributes), index, import.id) unless delay.present?
