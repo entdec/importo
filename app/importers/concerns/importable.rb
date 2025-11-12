@@ -129,7 +129,11 @@ module Importable
     batch = Importo.config.batch_adapter.new
     batch.description = "#{import.original.filename} - #{import.kind}"
     batch.properties = {import_id: import.id}
-    batch.on_success("Importo::ImportJobCallback")
+    if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
+      batch.on_success("Importo::ImportJobCallback")
+    else
+      batch.on_success = "Importo::ImportJobCallback"
+    end
 
     batch.add do
       column_with_delay = columns.select { |k, v| v.delay.present? }
@@ -140,9 +144,13 @@ module Importable
             v.delay.call(attributes[k])
           end
         end
-        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id) if delay.present?
-        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id) unless delay.present?
+        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_later(JSON.dump(attributes), index, import.id) if delay.present?
+        Importo::ImportJob.perform_later(JSON.dump(attributes), index, import.id) unless delay.present?
       end
+    end
+
+    if defined?(GoodJob::Batch) && Importo.config.batch_adapter == GoodJob::Batch
+      batch.enqueue
     end
 
     true

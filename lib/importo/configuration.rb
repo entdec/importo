@@ -6,6 +6,7 @@ module Importo
       def option(name, default: nil, proc: false)
         attr_writer(name)
         schema[name] = {default: default, proc: proc}
+
         if schema[name][:proc]
           define_method(name) do |*params|
             value = instance_variable_get(:"@#{name}")
@@ -44,6 +45,8 @@ module Importo
     option :base_service_context, default: "::ApplicationContext"
     option :current_import_owner, default: lambda {}
     option :queue_name, default: :import
+    # You can either use GoodJob::Batch or Importo::SidekiqBatchAdapter
+    option :batch_adapter, default: lambda { GoodJob::Batch }, proc: true
 
     option :admin_visible_imports, default: lambda { Importo::Import.where(importo_ownable: Importo.config.current_import_owner) }
     option(:admin_can_destroy,
