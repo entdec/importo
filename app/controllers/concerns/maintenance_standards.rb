@@ -11,7 +11,7 @@ module MaintenanceStandards
   #
   def flash_and_redirect(result, path, notice, error, render_action = :edit)
     if result
-      if params[:commit] == 'continue'
+      if params[:commit] == "continue"
         flash.now[:notice] = notice
       else
         redirect_to(path, notice: notice) && return

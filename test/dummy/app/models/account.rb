@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class Account < ApplicationRecord
-
   validates :name, presence: true
 
   include Importo::ActsAsImportOwner

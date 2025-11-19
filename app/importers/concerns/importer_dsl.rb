@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 module ImporterDsl
   extend ActiveSupport::Concern
@@ -32,10 +32,10 @@ module ImporterDsl
     # @param [Object] args
     # @param [Object] block which will filter the results before storing the value in the attribute, this is useful for lookups or reformatting
     def column(**options, &block)
-      name ||= options[:name]
-      name ||= options[:attribute]
-      options[:scope] = self.name.underscore.to_s.tr('/', '.').to_sym
-      columns[name] = Importo::ImportColumn.new(name: name, **options, &block)
+      column_name ||= options[:name]
+      column_name ||= options[:attribute]
+      options[:scope] = name.to_s.underscore.to_s.tr("/", ".").to_sym
+      columns[column_name] = Importo::ImportColumn.new(name: column_name, **options, &block)
     end
 
     def model(model = nil)
@@ -69,11 +69,6 @@ module ImporterDsl
     def csv_options(csv_options = nil)
       @csv_options = csv_options if csv_options
       @csv_options
-    end
-
-    def allow_position_reshuffle(allow_position_reshuffle = true, classes_to_not_reshuffle = [])
-      @allow_position_reshuffle = allow_position_reshuffle
-      @classes_to_not_reshuffle = classes_to_not_reshuffle
     end
 
     ##
@@ -110,17 +105,6 @@ module ImporterDsl
     #
     def ignore_header?
       @ignore_header
-    end
-
-    ##
-    # Allow reshuffling acts_as_lists positions if a new position is inserted between existing positioned items
-    ##
-    def allow_position_reshuffle?
-      @allow_position_reshuffle.nil? ? true : @allow_position_reshuffle
-    end
-
-    def classes_to_not_reshuffle
-      @classes_to_not_reshuffle
     end
 
     def overridable_columns

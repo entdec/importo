@@ -1,7 +1,6 @@
-
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 module Exportable
   extend ActiveSupport::Concern
@@ -15,8 +14,8 @@ module Exportable
 
   def sample_data
     sample_data = []
-    100.times { sample_data << export_columns.map { |_, c| c.options[:example] || '' } }
-    return sample_data
+    100.times { sample_data << export_columns.map { |_, c| c.options[:example] || "" } }
+    sample_data
   end
 
   #
@@ -40,7 +39,7 @@ module Exportable
 
   def export_row(record)
     export_columns.map do |_, c|
-      value = ''
+      value = ""
 
       if c.options[:attribute]
         if c.options[:export]&.key?(:value)
@@ -62,9 +61,9 @@ module Exportable
     workbook = xls.workbook
     sheet = workbook.add_worksheet(name: friendly_name&.pluralize || model.name.demodulize.pluralize)
     workbook.styles do |style|
-      introduction_style = style.add_style(bg_color: 'E2EEDA')
-      header_style = style.add_style(b: true, bg_color: 'A8D08E', border: { style: :thin, color: '000000' })
-      header_required_style = style.add_style(b: true, bg_color: 'A8D08E', fg_color: 'C00100', border: { style: :thin, color: '000000' })
+      introduction_style = style.add_style(bg_color: "E2EEDA")
+      header_style = style.add_style(b: true, bg_color: "A8D08E", border: {style: :thin, color: "000000"})
+      header_required_style = style.add_style(b: true, bg_color: "A8D08E", fg_color: "C00100", border: {style: :thin, color: "000000"})
 
       # Introduction
       introduction.each_with_index do |intro, i|
@@ -78,17 +77,17 @@ module Exportable
 
       export_columns.each.with_index do |f, i|
         field = f.last
-        sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count + 1}", author: '', text: field.hint, visible: false if field.hint.present?
+        sheet.add_comment ref: "#{nr_to_col(i)}#{introduction.count + 1}", author: "", text: field.hint, visible: false if field.hint.present?
       end
       styles = export_columns.map do |_, c|
-        if c.options.dig(:export, :format) == 'number' || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(Numeric)) 
-          number = workbook.styles.add_style format_code: '#'
-        elsif c.options.dig(:export, :format) == 'text' || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(String))
-          text = workbook.styles.add_style format_code: '@'
-        elsif c.options.dig(:export, :format) 
+        if c.options.dig(:export, :format) == "number" || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(Numeric))
+          number = workbook.styles.add_style format_code: "#"
+        elsif c.options.dig(:export, :format) == "text" || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(String))
+          text = workbook.styles.add_style format_code: "@"
+        elsif c.options.dig(:export, :format)
           workbook.styles.add_style format_code: c.options.dig(:export, :format).to_s
         else
-          workbook.styles.add_style format_code: 'General'
+          workbook.styles.add_style format_code: "General"
         end
       end
       # Examples
@@ -99,15 +98,15 @@ module Exportable
 
     sheet.column_info[0].width = 10
 
-    sheet = workbook.add_worksheet(name: I18n.t('importo.sheet.explanation.name'))
+    sheet = workbook.add_worksheet(name: I18n.t("importo.sheet.explanation.name"))
 
     workbook.styles do |style|
-      introduction_style = style.add_style(bg_color: 'E2EEDA')
-      header_style = style.add_style(b: true, bg_color: 'A8D08E', border: { style: :thin, color: '000000' })
+      introduction_style = style.add_style(bg_color: "E2EEDA")
+      header_style = style.add_style(b: true, bg_color: "A8D08E", border: {style: :thin, color: "000000"})
 
       column_style = style.add_style(b: true)
-      required_style = style.add_style(b: true, fg_color: 'C00100')
-      wrap_style = workbook.styles.add_style alignment: { wrap_text: true }
+      required_style = style.add_style(b: true, fg_color: "C00100")
+      wrap_style = workbook.styles.add_style alignment: {wrap_text: true}
 
       # Introduction
       introduction.each_with_index do |intro, i|
@@ -117,7 +116,7 @@ module Exportable
       end
 
       # Header row
-      sheet.add_row [I18n.t('importo.sheet.explanation.column'), I18n.t('importo.sheet.explanation.value'), I18n.t('importo.sheet.explanation.explanation'), I18n.t('importo.sheet.explanation.example')], style: [header_style] * 4
+      sheet.add_row [I18n.t("importo.sheet.explanation.column"), I18n.t("importo.sheet.explanation.value"), I18n.t("importo.sheet.explanation.explanation"), I18n.t("importo.sheet.explanation.example")], style: [header_style] * 4
       export_columns.each do |_, c|
         styles = [c.options[:required] ? required_style : column_style, wrap_style]
         sheet.add_row [c.name, c.value, c.explanation, c.example], style: styles

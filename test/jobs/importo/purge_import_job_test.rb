@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class AccountImporter < Importo::BaseImporter
   includes_header true
@@ -6,18 +6,20 @@ class AccountImporter < Importo::BaseImporter
 
   model Account
 
-  column attribute: 'id'
-  column attribute: 'name'
-  column attribute: 'description', strip_tags: false
+  column attribute: "id"
+  column attribute: "name"
+  column attribute: "description", strip_tags: false
 end
 
 module Importo
   class PurgeImportJobTest < ActiveSupport::TestCase
-    test 'does not purge importo import less than 3 month ago' do
-      account = Account.create(name: 'test')
-      import = Import.new(importo_ownable: account, kind: 'account', created_at: 1.month.ago)
+    include Importo::TestHelpers
+
+    test "does not purge importo import less than 3 month ago" do
+      account = Account.create(name: "test")
+      import = Import.new(importo_ownable: account, kind: "account", created_at: 1.month.ago)
       import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]),
-                             filename: 'simple_sheet.xlsx')
+        filename: "simple_sheet.xlsx")
       import.save!
 
       PurgeImportJob.perform_now(account, 3)
@@ -25,11 +27,11 @@ module Importo
       assert import.reload
     end
 
-    test 'purges imporoto import message more than 3 month ago' do
-      account = Account.create(name: 'test')
-      import = Import.new(importo_ownable: account, kind: 'account', created_at: 5.month.ago)
+    test "purges imporoto import message more than 3 month ago" do
+      account = Account.create(name: "test")
+      import = Import.new(importo_ownable: account, kind: "account", created_at: 5.month.ago)
       import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]),
-                             filename: 'simple_sheet.xlsx')
+        filename: "simple_sheet.xlsx")
       import.save!
 
       PurgeImportJob.perform_now(account, 3)

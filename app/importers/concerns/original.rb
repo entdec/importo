@@ -1,7 +1,6 @@
-
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 module Original
   extend ActiveSupport::Concern
@@ -9,11 +8,11 @@ module Original
   def original
     return @original if @original && !@original.is_a?(Hash)
 
-    if import.respond_to?(:attachment_changes) && import.attachment_changes['original']
-      @original ||= import.attachment_changes['original']&.attachable
+    if import.respond_to?(:attachment_changes) && import.attachment_changes["original"]
+      @original ||= import.attachment_changes["original"]&.attachable
 
       if @original.is_a?(Hash)
-        tempfile = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
+        tempfile = Tempfile.new(["ActiveStorage", import.original.filename.extension_with_delimiter])
         tempfile.binmode
         tempfile.write(@original[:io].read)
         @original[:io].rewind
@@ -23,7 +22,7 @@ module Original
     else
       return unless import&.original&.attachment
 
-      @original = Tempfile.new(['ActiveStorage', import.original.filename.extension_with_delimiter])
+      @original = Tempfile.new(["ActiveStorage", import.original.filename.extension_with_delimiter])
       @original.binmode
       import.original.download { |block| @original.write(block) }
       @original.flush
@@ -80,8 +79,8 @@ module Original
   end
 
   def invalid_header_names_for_row(index)
-    stripped_headers = allowed_header_names.map { |name| name.to_s.gsub(/[^A-Za-z]/, '').downcase }
-    cells_from_row(index).reject { |header| stripped_headers.include?(header.to_s.gsub(/[^A-Za-z]/, '').downcase) }
+    stripped_headers = allowed_header_names.map { |name| name.to_s.gsub(/[^A-Za-z]/, "").downcase }
+    cells_from_row(index).reject { |header| stripped_headers.include?(header.to_s.gsub(/[^A-Za-z]/, "").downcase) }
   end
 
   def allowed_header_names
@@ -90,15 +89,15 @@ module Original
 
   def spreadsheet
     @spreadsheet ||= case File.extname(original.path)
-                     when '.csv' then
-                       Roo::CSV.new(original.path, csv_options: csv_options)
-                     when '.xls' then
-                       Roo::Excel.new(original.path)
-                     when '.xlsx' then
-                       Roo::Excelx.new(original.path)
-                     else
-                       raise "Unknown file type: #{original.path.split('/').last}"
-                     end
+    when ".csv"
+      Roo::CSV.new(original.path, csv_options: csv_options)
+    when ".xls"
+      Roo::Excel.new(original.path)
+    when ".xlsx"
+      Roo::Excelx.new(original.path)
+    else
+      raise "Unknown file type: #{original.path.split("/").last}"
+    end
   end
 
   def duplicate(row_hash, id)
@@ -106,7 +105,7 @@ module Original
   end
 
   def duplicate?(row_hash, id)
-    return false if allow_duplicates? || row_hash['id'] == id
+    return false if allow_duplicates? || row_hash["id"] == id
 
     duplicate(row_hash, id)
   end
@@ -115,9 +114,9 @@ module Original
     (data_start_row..spreadsheet.last_row).map do |index|
       row = cells_from_row(index, false)
 
-      attributes = Hash[[attribute_names, row].transpose]
+      attributes = Hash[[attribute_names, row].transpose].reject { |k, _| k.nil? }
       attributes = attributes.map do |column, value|
-        value = strip_tags(value.strip) if value.respond_to?(:strip) && columns[column]&.options[:strip_tags] != false
+        value = strip_tags(value.strip) if value.respond_to?(:strip) && columns[column]&.options&.[](:strip_tags) != false
         [column, value]
       end.to_h
       attributes.reject! { |k, _v| headers_added_by_import.include?(k) }
@@ -134,7 +133,7 @@ module Original
   end
 
   def nr_to_col(number)
-    ('A'..'ZZ').to_a[number]
+    ("A".."ZZ").to_a[number]
   end
 
   def attribute_names

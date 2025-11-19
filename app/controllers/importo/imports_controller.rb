@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_dependency 'importo/application_controller'
+require_dependency "importo/application_controller"
 
 module Importo
   class ImportsController < ApplicationController
@@ -29,7 +29,7 @@ module Importo
     def create
       unless import_params
         @import = Import.new(kind: params[:kind], locale: I18n.locale)
-        Signum.error(Current.user, text: t('.flash.no_file'))
+        Signum.error(Current.user, text: t(".flash.no_file"))
         render :new
         return
       end
@@ -39,7 +39,7 @@ module Importo
         @import.save!
         redirect_to action: :preview, id: @import.id, kind: @import.kind
       else
-        Signum.error(Current.user, text: t('.flash.error', error: @import.errors&.full_messages&.join('.')))
+        Signum.error(Current.user, text: t(".flash.error", error: @import.errors&.full_messages&.join(".")))
         render :new
       end
     end
@@ -55,7 +55,7 @@ module Importo
     def undo
       @import = Import.where(importo_ownable: Importo.config.current_import_owner.call).find(params[:id])
       if @import.can_revert? && @import.revert
-        redirect_to action: :index, notice: 'Import reverted'
+        redirect_to action: :index, notice: "Import reverted"
       else
         redirect_to action: :index, alert: 'Import could not be reverted'
       end
@@ -74,8 +74,8 @@ module Importo
     end
 
     def destroy
-      @import = Import.where(importo_ownable: Importo.config.current_import_owner.call).find(params[:id])
-      redirect_to(action: :index, alert: 'Not allowed') && return unless Importo.config.admin_can_destroy.call(@import)
+      @import = Import.find(params[:id])
+      redirect_to(action: :index, alert: "Not allowed") && return unless Importo.config.admin_can_destroy.call(@import)
 
       @import.destroy
       redirect_to action: :index
@@ -84,13 +84,13 @@ module Importo
     def sample
       import = Import.new(kind: params[:kind], locale: I18n.locale)
       send_data import.importer.sample_file.read,
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: import.importer.file_name('sample')
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filename: import.importer.file_name("sample")
     end
 
     def export
       import = Import.new(kind: params[:kind], locale: I18n.locale)
       send_data import.importer.export_file.read,
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: import.importer.file_name('export')
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filename: import.importer.file_name("export")
     end
 
     def index
@@ -101,7 +101,7 @@ module Importo
 
     def import_params
       params.require(:import).permit(:original, :kind, :column_overrides,
-                                     column_overrides: params.dig(:import, :column_overrides)&.keys)
+        column_overrides: params.dig(:import, :column_overrides)&.keys)
     end
   end
 end

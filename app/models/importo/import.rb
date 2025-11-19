@@ -7,7 +7,7 @@ module Importo
     belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
-    has_many :results, class_name: 'Importo::Result', dependent: :delete_all
+    has_many :results, class_name: "Importo::Result", dependent: :delete_all
 
     validates :kind, presence: true
     validates :original, presence: true
@@ -31,8 +31,8 @@ module Importo
         imprt.importer.state_changed(imprt, transition)
       end
 
-      after_transition any => :scheduled, do: :schedule_import
-      after_transition any => :reverting, do: :schedule_revert
+      after_transition any => :scheduled, :do => :schedule_import
+      after_transition any => :reverting, :do => :schedule_revert
 
       event :schedule do
         transition confirmed: :scheduled
@@ -49,7 +49,7 @@ module Importo
       end
 
       event :complete do
-        transition importing: :completed
+        transition importing: :completed, if: ->(import) { import.no_processing? && import.results.count == import.importer.send(:row_count) }
       end
 
       event :failure do
@@ -76,15 +76,40 @@ module Importo
     def content_validator
       unless importer.structure_valid?
         errors.add(:original,
-                   I18n.t('importo.errors.structure_invalid',
-                          invalid_headers: importer.invalid_header_names.join(', ')))
+          I18n.t("importo.errors.structure_invalid",
+            invalid_headers: importer.invalid_header_names.join(", ")))
       end
-    rescue StandardError => e
-      errors.add(:original, I18n.t('importo.errors.parse_error', error: e.message))
+    rescue => e
+      Rails.logger.info "Importo failed excpetion: #{e.message} backtrace #{e.backtrace.join(";")}"
+      errors.add(:original, I18n.t("importo.errors.parse_error", error: e.message))
     end
 
     def importer
       @importer ||= "#{kind.camelize}Importer".constantize.new(self)
+    end
+
+    def failure?
+      results.where("details @> ?", '{"state":"failure"}').any?
+    end
+
+    def no_failure?
+      results.where("details @> ?", '{"state":"failure"}').none?
+    end
+
+    def success?
+      results.where("details @> ?", '{"state":"success"}').any?
+    end
+
+    def no_succes?
+      results.where("details @> ?", '{"state":"success"}').none?
+    end
+
+    def processing?
+      results.where("details @> ?", '{"state":"processing"}').any?
+    end
+
+    def no_processing?
+      results.where("details @> ?", '{"state":"processing"}').none?
     end
 
     private
@@ -94,7 +119,7 @@ module Importo
     end
 
     def schedule_revert
-      RevertService.perform_later(import: self)
+      ImportRevertJob.perform_in(5.seconds, id)
     end
   end
 end

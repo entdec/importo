@@ -1,2 +1,6 @@
 = sts.card :importo_imports, icon: 'fad fa-file-import', content_padding: false do |card|
-  = card.table :importo_imports, custom_views: true
+  - if defined? Mensa
+    = sts.table(:importo_mensa_imports, parameters: { kind: @import&.kind })
+  - else
+    = card.with_table(:importo_imports, parameters: { kind: @import&.kind }, custom_views: false)
+
