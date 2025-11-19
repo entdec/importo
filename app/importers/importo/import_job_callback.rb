@@ -29,7 +29,7 @@ module Importo
       end
     end
 
-    def on_success(status, options)
+    def on_complete(status, options)
       options = options.deep_stringify_keys
       import = Import.find(options["import_id"])
       complete_import(import)

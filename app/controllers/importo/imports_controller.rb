@@ -35,9 +35,13 @@ module Importo
       end
       @import = Import.new(import_params.merge(locale: I18n.locale,
                                                importo_ownable: Importo.config.current_import_owner.call))
-      if @import.valid?
+      if params["commit"] == "upload" && @import.valid? && @import.save!
+        @import.confirm!
+        @import.schedule!
+        redirect_to importo.new_import_path(params[:kind] || @import.kind)                                         
+      elsif params["commit"] == "preview" && @import.valid?
         @import.save!
-        redirect_to action: :preview, id: @import.id, kind: @import.kind
+        redirect_to action: :preview, id: @import.id, kind: @import.kind 
       else
         Signum.error(Current.user, text: t(".flash.error", error: @import.errors&.full_messages&.join(".")))
         render :new
