@@ -1,22 +1,8 @@
 module Importo
-<<<<<<< HEAD
   class ImportJob < ApplicationJob
+    # No options here, gets added from the adapter
     queue_as Importo.config.queue_name
     include GoodJob::ActiveJobExtensions::Batches
-
-    # retry_on Importo::RetryError do |job, error|
-    #   attributes = job["args"][0]
-    #   index = job["args"][1]
-    #   import_id = job["args"][2]
-
-    #   binding.break
-
-    #   execute_row(attributes, index, import_id, true, job["bid"])
-    # end
-=======
-  class ImportJob < Importo.config.import_job_base_class.safe_constantize
-    # No options here, gets added from the adapter
->>>>>>> d048d2523d7a34048cea04448f43f12338703dc0
 
     def perform(attributes, index, import_id)
       self.class.execute_row(attributes, index, import_id, false)
@@ -32,13 +18,13 @@ module Importo
       # - Sidekiq calls on_complete callback when all jobs ran at least once.
       # - GoodJob calls on_complete callback when all jobs are done (including retries).
       # i.e. this logic is only needed for sidekiq
-      if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
-        batch = Importo::SidekiqBatchAdapter.find(bid)
+      # if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
+      #   batch = Importo::SidekiqBatchAdapter.find(bid)
 
-        if !import.completed? && import.can_complete? && batch.finished?
-          ImportJobCallback.new.on_complete("success", {import_id: import.id})
-        end
-      end
+      #   if !import.completed? && import.can_complete? && batch.finished?
+      #     ImportJobCallback.new.on_complete("success", {import_id: import.id})
+      #   end
+      # end
     end
   end
 end

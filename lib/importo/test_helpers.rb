@@ -28,7 +28,8 @@ module Importo
 
       import.original.attach(io: sheet, filename: filename, content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", identify: false)
       import.save!
-
+      import.confirm
+      import.schedule
       ImportService.perform(import: import)
       if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
         ImportJobCallback.new.on_success(:success,{import_id: import.id})

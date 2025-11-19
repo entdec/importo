@@ -136,7 +136,7 @@ module Importable
     end
 
     batch.add do
-      column_with_delay = columns.select{|k,v| v.delay.present?}
+      column_with_delay = columns.select { |k, v| v.delay.present? }
       loop_data_rows(checked_columns) do |attributes, index|
         if column_with_delay.present?
           delay = column_with_delay.filter_map do |k, v|

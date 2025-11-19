@@ -75,5 +75,5 @@ module Importo
   end
 end
 
-Importo::ImportJob.send(:include, Sidekiq::Job)
-Importo::ImportJob.send(:include, Importo::SidekiqBatchAdapter::ImportJobIncludes)
+# Importo::ImportJob.send(:include, Sidekiq::Job)
+# Importo::ImportJob.send(:include, Importo::SidekiqBatchAdapter::ImportJobIncludes)

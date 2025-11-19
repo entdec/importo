@@ -1,6 +1,6 @@
-= sts.form_with(url: upload_import_path) do |f|
+= sts.form_with(model: false, url: upload_import_path) do |f|
   = sts.card :"importo_imports #{@import.kind}", title: t('.title', kind: @import&.kind.capitalize), icon: 'fad fa-file-spreadsheet' do |card|
-    - card.action
+    - card.with_action
       / = f.button 'Cancel', value: 'cancel'
       = f.submit 'Upload', value: 'upload'
       = link_to(t('.cancel'), cancel_import_path(@import), method: :post, class: 'button')
