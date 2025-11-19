@@ -3,7 +3,7 @@
 module Importo
   class Import < Importo::ApplicationRecord
     # include ActiveStorage::Downloading
-
+    attr_accessor :checked_columns
     belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
@@ -12,7 +12,6 @@ module Importo
     validates :kind, presence: true
     validates :original, presence: true
     validate :content_validator
-
     begin
       has_one_attached :original
       has_one_attached :result
@@ -20,7 +19,8 @@ module Importo
       # Weird loading sequence error, is fixed by the lib/importo/helpers
     end
 
-    state_machine :state, initial: :new do
+    state_machine :state, initial: :concept do
+      state :confirmed
       state :importing
       state :scheduled
       state :completed
@@ -35,11 +35,15 @@ module Importo
       after_transition any => :reverting, :do => :schedule_revert
 
       event :schedule do
-        transition new: :scheduled
+        transition confirmed: :scheduled
+      end
+
+      event :confirm do
+        transition concept: :confirmed
       end
 
       event :import do
-        transition new: :importing
+        transition confirmed: :importing
         transition scheduled: :importing
         transition failed: :importing
       end
@@ -111,7 +115,7 @@ module Importo
     private
 
     def schedule_import
-      ImportScheduleJob.perform_in(5.seconds, id)
+      ImportService.perform_later(import: self, checked_columns: self.checked_columns)
     end
 
     def schedule_revert

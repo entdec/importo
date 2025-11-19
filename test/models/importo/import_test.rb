@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "importo/test_helpers"
 
 class TranslatedAccountImporter < Importo::BaseImporter
   includes_header true
@@ -167,7 +168,7 @@ module Importo
     def assert_import(import)
       assert_nothing_raised do
         assert_difference -> { Account.count }, 1 do
-          import.importer.import!
+          import.importer.import!(checked_columns: import.checked_columns)
         end
       end
 

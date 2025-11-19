@@ -4,7 +4,9 @@
       = f.input :kind, as: :hidden
       = sts.card :"importo_imports #{@import.kind}", title: t('.title'), icon: 'fad fa-file-spreadsheet' do |card|
         - card.with_action
-          = f.submit
+          = f.button 'preview', value: 'preview',  class: 'button secondary'
+        - card.with_action
+          = f.submit nil, value: 'upload'  
 
         .grid.grid-cols-12.gap-4
           .col-span-12

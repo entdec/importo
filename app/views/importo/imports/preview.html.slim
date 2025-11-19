@@ -1,0 +1,36 @@
+= sts.form_with(model: false, url: upload_import_path) do |f|
+  = sts.card :"importo_imports #{@import.kind}", title: t('.title', kind: @import&.kind.capitalize), icon: 'fad fa-file-spreadsheet' do |card|
+    - card.with_action
+      / = f.button 'Cancel', value: 'cancel'
+      = f.submit 'Upload', value: 'upload'
+      = link_to(t('.cancel'), cancel_import_path(@import), method: :post, class: 'button')
+    .px-4.sm:px-6.lg:px-8
+      / .sm:flex.sm:items-center
+      /   .sm:flex-auto
+      /     h1.text-base.font-semibold.leading-6.text-gray-900
+      /       | Users
+      /     p.mt-2.text-sm.text-gray-700
+      /       | A list of all the users in your account including their name, title, email and role.
+      /   .mt-4.sm:ml-16.sm:mt-0.sm:flex-none
+      /     button.block.rounded-md.bg-indigo-600.px-3.py-2.text-center.text-sm.font-semibold.text-white.shadow-sm.hover:bg-indigo-500.focus-visible:outline.focus-visible:outline-2.focus-visible:outline-offset-2.focus-visible:outline-indigo-600[type="button"]
+      /       | Add user
+      .mt-8.flow-root
+        .-mx-4.-my-2.overflow-x-auto.sm:-mx-6.lg:-mx-8
+          .inline-block.min-w-full.py-2.align-middle.bg-white.dark:bg-gray-900.dark:border-gray-700
+            table.min-w-full.divide-y.divide-gray-20.border-2
+              thead.bg-gray-50
+                tr
+                  - @sheet_data.first.keys.each_with_index do |header, index|
+                    th.px-3.py-3.5.text-left.text-sm.font-semibold.border-2.text-gray-600[scope="col"]
+                      = f.check_box :selected_items, { multiple: true, checked: @check_header.include?(header), disabled: @check_header.exclude?(header) }, ActionController::Base.helpers.strip_tags(header)
+                tr
+                  - @sheet_data.first.keys.each_with_index do |header, index|
+                    th.px-3.py-3.5.text-left.text-sm.font-semibold.border-2.text-gray-600[scope="col"]
+                      / = f.check_box :active, checked: @check_header.include?(header)
+                      = ActionController::Base.helpers.strip_tags(header)
+              tbody.divide-y.divide-gray-200.bg-white
+                - @sheet_data.reject! { |h| h.keys == h.values }&.each do |h|
+                  tr
+                    - h.each do |key, value|
+                      td.whitespace-nowrap.px-3.py-4.text-sm.text-gray-500.border-2
+                        = value
