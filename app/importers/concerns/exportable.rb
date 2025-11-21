@@ -81,7 +81,7 @@ module Exportable
       end
       styles = export_columns.map do |_, c|
         if c.options.dig(:export, :format) == "number" || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(Numeric))
-          number = workbook.styles.add_style format_code: "#"
+          number = workbook.styles.add_style format_code: "0"
         elsif c.options.dig(:export, :format) == "text" || (c.options.dig(:export, :format).nil? && c.options.dig(:export, :example).is_a?(String))
           text = workbook.styles.add_style format_code: "@"
         elsif c.options.dig(:export, :format)
