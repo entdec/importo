@@ -2,7 +2,6 @@ module Importo
   class ImportJob < ApplicationJob
     # No options here, gets added from the adapter
     queue_as Importo.config.queue_name
-    include GoodJob::ActiveJobExtensions::Batches
 
     def perform(attributes, index, import_id)
       self.class.execute_row(attributes, index, import_id, false)
