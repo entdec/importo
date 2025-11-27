@@ -1,13 +1,27 @@
 module Importo
-  class ImportJob < ApplicationJob
-    # No options here, gets added from the adapter
-    queue_as Importo.config.queue_name
-
-    def perform(attributes, index, import_id)
-      self.class.execute_row(attributes, index, import_id, false)
+  base_class =
+    if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
+      Object
+    else
+      ApplicationJob
     end
 
-    def self.execute_row(attributes, index, import_id, last_attempt)
+  class ImportJob < base_class
+
+    # No options here, gets added from the adapter
+
+    def perform(attributes, index, import_id)
+      batch_id = if defined?(bid)
+        bid
+      else
+        batch.id
+      end
+      batch
+
+      self.class.execute_row(attributes, index, import_id, false, batch_id)
+    end
+
+    def self.execute_row(attributes, index, import_id, last_attempt, bid)
       attributes = JSON.load(attributes).deep_symbolize_keys if attributes.is_a?(String)
 
       import = Import.find(import_id)
@@ -17,13 +31,13 @@ module Importo
       # - Sidekiq calls on_complete callback when all jobs ran at least once.
       # - GoodJob calls on_complete callback when all jobs are done (including retries).
       # i.e. this logic is only needed for sidekiq
-      # if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
-      #   batch = Importo::SidekiqBatchAdapter.find(bid)
+      if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
+        batch = Importo::SidekiqBatchAdapter.find(bid)
 
-      #   if !import.completed? && import.can_complete? && batch.finished?
-      #     ImportJobCallback.new.on_complete("success", {import_id: import.id})
-      #   end
-      # end
+        if !import.completed? && import.can_complete? && batch.finished?
+          ImportJobCallback.perform_now(batch, import.id)
+        end
+      end
     end
   end
 end

@@ -8,7 +8,6 @@ if !defined?(Sidekiq::Batch)
   end
 end
 
-require_relative "../../../app/jobs/importo/import_job"
 
 module Importo
   class SidekiqBatchAdapter
@@ -75,5 +74,8 @@ module Importo
   end
 end
 
-# Importo::ImportJob.send(:include, Sidekiq::Job)
-# Importo::ImportJob.send(:include, Importo::SidekiqBatchAdapter::ImportJobIncludes)
+require_relative "../../../app/jobs/importo/import_job"
+
+
+Importo::ImportJob.send(:include, Sidekiq::Job)
+Importo::ImportJob.send(:include, Importo::SidekiqBatchAdapter::ImportJobIncludes)

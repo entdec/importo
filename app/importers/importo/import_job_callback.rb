@@ -3,8 +3,8 @@ module Importo
     include Sidekiq::Batch::Callback
     include Rails.application.routes.url_helpers
 
-    def perform(batch, params)
-      import = Import.find(batch.properties[:import_id])
+    def perform(batch, import_id)
+      import = Import.find(import_id)
       complete_import(import)
     end
 
