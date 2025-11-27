@@ -35,11 +35,11 @@ module Importo
       end
       @import = Import.new(import_params.merge(locale: I18n.locale,
                                                importo_ownable: Importo.config.current_import_owner.call))
-      if params["commit"] == "upload" && @import.valid? && @import.save!
+      if params["commit"] == "Upload" && @import.valid? && @import.save!
         @import.confirm!
         @import.schedule!
         redirect_to importo.new_import_path(params[:kind] || @import.kind)                                         
-      elsif params["commit"] == "preview" && @import.valid?
+      elsif params["commit"] == "Preview" && @import.valid?
         @import.save!
         redirect_to action: :preview, id: @import.id, kind: @import.kind 
       else
@@ -52,7 +52,7 @@ module Importo
       @import = Import.find(params[:id])
       @import.original.purge if @import.concept?
       Signum.error(Current.user, text: t('.flash.cancel', id: @import.id))
-      # flash[:notice] = t('.flash.cancel', id: @import.id)
+      @import.destroy!
       redirect_to action: :new, kind: @import.kind
     end
 
