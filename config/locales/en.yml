@@ -15,7 +15,8 @@ en:
         example: Example
     imports:
       cancel:
-        success: "Import canceled for id %{id}, Redirecting to new"
+        flash:
+          cancel: "Import canceled for id %{id}, Redirecting to new"
       index:
         title: Import results
         card:
