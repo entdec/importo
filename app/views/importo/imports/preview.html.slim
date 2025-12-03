@@ -2,7 +2,7 @@
   = sts.card :"importo_imports #{@import.kind}", title: t('.title', kind: @import&.kind.capitalize), icon: 'fad fa-file-spreadsheet' do |card|
     - card.with_action
       = f.submit 'Upload', value: 'Upload'
-      = link_to(t('.cancel'), cancel_import_path(@import), data: { "turbo-method" => :post}, class: 'button')
+      = link_to(t('.back'), cancel_import_path(@import), data: { "turbo-method" => :post}, class: 'button')
     .px-4.sm:px-6.lg:px-8
       / .sm:flex.sm:items-center
       /   .sm:flex-auto

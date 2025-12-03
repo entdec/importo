@@ -44,7 +44,7 @@ en:
       preview:
         no_file: Import failed, please upload valid file.
         title: "%{kind} Import Preview"
-        cancel: Cancel
+        back: Back
       upload:
         flash:
           no_file: Import failed, please upload a file.
