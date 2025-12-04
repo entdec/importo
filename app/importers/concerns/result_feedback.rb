@@ -35,7 +35,7 @@ module ResultFeedback
         attributes.map do |column, value|
           export_format = columns[column]&.options&.dig(:export, :format)
           format_code = if export_format == "number" || (export_format.nil? && value.is_a?(Numeric))
-            "#"
+            "0"
           elsif export_format == "text" || (export_format.nil? && value.is_a?(String))
             "@"
           elsif export_format
