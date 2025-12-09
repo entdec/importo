@@ -43,7 +43,11 @@ module Importo
         @import.save!
         redirect_to action: :preview, id: @import.id, kind: @import.kind 
       else
-        Signum.error(Current.user, text: t(".flash.error", error: @import.errors&.full_messages&.join(".")))
+        if !@import.original.attached?
+          Signum.error(Current.user, text: t('.flash.no_file_selected'))
+        else
+          Signum.error(Current.user, text: t('.flash.error', error: @import.errors&.full_messages&.join('.')))
+        end
         render :new
       end
     end
