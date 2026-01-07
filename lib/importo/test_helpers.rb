@@ -1,7 +1,7 @@
 # frozen_string_literal: true-
 
-require "axlsx"
-require "roo/excelx"
+# require "axlsx"
+# require "roo/excelx"
 
 module Importo
   module TestHelpers
@@ -31,8 +31,8 @@ module Importo
       import.confirm
       import.schedule
       ImportService.perform(import: import)
-      if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
-        ImportJobCallback.new.on_success(:success,{import_id: import.id})
+      if Importo.config.batch_adapter.name == "Importo::SidekiqBatchAdapter"
+        ImportJobCallback.new.on_success(:success, {import_id: import.id})
       end
       import
     end

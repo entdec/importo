@@ -82,5 +82,13 @@ module Importo
     def reset_config!
       @config = Configuration.new
     end
+
+    def sidekiq?
+      config.batch_adapter.name == "Importo::SidekiqBatchAdapter"
+    end
+
+    def good_job?
+      config.batch_adapter.name == "GoodJob::Batch"
+    end
   end
 end

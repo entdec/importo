@@ -12,12 +12,9 @@ module Importo
     validates :kind, presence: true
     validates :original, presence: true
     validate :content_validator
-    begin
-      has_one_attached :original
-      has_one_attached :result
-    rescue NoMethodError
-      # Weird loading sequence error, is fixed by the lib/importo/helpers
-    end
+
+    has_one_attached :original
+    has_one_attached :result
 
     state_machine :state, initial: :concept do
       state :confirmed
@@ -115,7 +112,7 @@ module Importo
     private
 
     def schedule_import
-      ImportService.perform_later(import: self, checked_columns: self.checked_columns)
+      ImportService.perform_later(import: self, checked_columns: checked_columns)
     end
 
     def schedule_revert

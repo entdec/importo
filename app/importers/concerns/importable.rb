@@ -88,7 +88,7 @@ module Importable
   end
 
   #
-  # Callbakcs
+  # Callbacks
   #
   def before_build(_record, _row)
   end
@@ -129,7 +129,7 @@ module Importable
     batch = Importo.config.batch_adapter.new
     batch.description = "#{import.original.filename} - #{import.kind}"
     batch.properties = {import_id: import.id}
-    if Importo.config.batch_adapter == Importo::SidekiqBatchAdapter
+    if Importo.sidekiq?
       batch.on_success("Importo::ImportJobCallback")
     else
       batch.on_success = "Importo::ImportJobCallback"
@@ -144,14 +144,14 @@ module Importable
             v.delay.call(attributes[k])
           end
         end
-        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id) if delay.present?
-        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id) unless delay.present?
+
+        method = Importo.sidekiq? ? "perform_async" : "perform_later"
+        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).send(method, JSON.dump(attributes), index, import.id) if delay.present?
+        Importo::ImportJob.send(method, JSON.dump(attributes), index, import.id) unless delay.present?
       end
     end
 
-    if defined?(GoodJob::Batch) && Importo.config.batch_adapter == GoodJob::Batch
-      batch.enqueue
-    end
+    batch.enqueue if defined?(GoodJob::Batch) && Importo.good_job?
 
     true
   rescue => e

@@ -1,10 +1,11 @@
 module Importo
   class ImportJobCallback < ActiveJob::Base
-    include Sidekiq::Batch::Callback
+    include Sidekiq::Batch::Callback if Importo.sidekiq?
     include Rails.application.routes.url_helpers
 
-    def perform(batch, import_id)
-      import = Import.find(import_id)
+    # This is for good_job
+    def perform(batch, context)
+      import = Import.find(batch.properties[:import_id])
       complete_import(import)
     end
 
@@ -29,6 +30,7 @@ module Importo
       end
     end
 
+    # This is for sidekiq
     def on_complete(status, options)
       options = options.deep_stringify_keys
       import = Import.find(options["import_id"])
