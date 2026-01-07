@@ -20,7 +20,7 @@ module Importo
           Importo::Import.include(ImportHelpers)
 
           # For now put this here to ensure compatibility
-          require "importo/adapters/sidekiq_batch_adapter"
+          # require "importo/adapters/sidekiq_batch_adapter"
         end
       end
     end
