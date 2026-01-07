@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CreateIndexGoodJobsJobsOnPriorityCreatedAtWhenUnfinished < ActiveRecord::Migration[7.0]
+class CreateIndexGoodJobsJobsOnPriorityCreatedAtWhenUnfinished < ActiveRecord::Migration[8.1]
   disable_ddl_transaction!
 
   def change

@@ -18,11 +18,11 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
-  s.add_dependency "caxlsx", "~> 3.0.1"
+  s.add_dependency "caxlsx", "~> 4"
   s.add_dependency "csv", "~> 3.3"
   s.add_dependency "rails", ">= 5.2"
-  s.add_dependency "roo", "~> 2.7"
-  s.add_dependency "roo-xls", "~> 1.1"
+  s.add_dependency "roo", "~> 3"
+  s.add_dependency "roo-xls", "~> 2"
   s.add_dependency "satis", "~> 2"
   s.add_dependency "signum", "~> 0.3"
   s.add_dependency "slim", "> 3.0"
