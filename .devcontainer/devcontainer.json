@@ -1,0 +1,35 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ruby
+{
+  "name": "importo",
+  "dockerComposeFile": "compose.yaml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/importo",
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": { },
+    "ghcr.io/rails/devcontainer/features/activestorage": { },
+    "ghcr.io/rails/devcontainer/features/postgres-client": {
+      "version": "17"
+    },
+    "ghcr.io/devcontainers/features/node:1": { },
+    "ghcr.io/duduribeiro/devcontainer-features/tmux:1": { }
+  },
+  "containerEnv": {
+    "CAPYBARA_SERVER_PORT": "45678",
+    "SELENIUM_HOST": "selenium",
+    "DB_HOST": "postgres"
+  },
+  "forwardPorts": [
+    3000,
+    5432
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Shopify.ruby-lsp"
+      ]
+    }
+  },
+  "postCreateCommand": "bin/setup"
+}
