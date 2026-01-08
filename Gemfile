@@ -10,7 +10,7 @@ gemspec
 
 gem "servitium", "~> 1.1"
 gem "signum", "~> 0.3"
-gem "sidekiq-batch", entdec: "sidekiq-batch", branch: "master"
+gem "sidekiq-batch"
 gem "facio", entdec: "facio", branch: "main"
 gem "satis", "~> 2", entdec: "satis", branch: "develop"
 gem "sprockets-rails"
