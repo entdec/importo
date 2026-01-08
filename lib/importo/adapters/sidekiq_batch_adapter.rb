@@ -36,10 +36,6 @@ module Importo
     end
 
     class << self
-      def import_job_base_class_name
-        "Object"
-      end
-
       def find(id)
         instance = new
         instance.instance = Sidekiq::Batch.new(id)
