@@ -1,6 +1,6 @@
 module Importo
-  class ImportScheduledJob < ApplicationJob
-    def perform()
+  class ImportScheduledJob < ActiveJob::Base
+    def perform
       imports = Import.where(state: "scheduled", created_at: ..30.minutes.ago)
 
       imports.each do |import|

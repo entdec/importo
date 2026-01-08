@@ -1,5 +1,5 @@
 module Importo
-  class ImportJob < Importo.config.import_job_base_class.constantize
+  class ImportJob < Importo.import_job_base_class_name.constantize
     # No options here, gets added from the adapter
 
     def perform(attributes, index, import_id)

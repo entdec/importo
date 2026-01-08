@@ -126,7 +126,7 @@ module Importable
   def import!(checked_columns)
     raise ArgumentError, "Invalid data structure" unless structure_valid?
 
-    batch = Importo.config.batch_adapter.new
+    batch = Importo.config.batch_adapter_name.constantize.new
     batch.description = "#{import.original.filename} - #{import.kind}"
     batch.properties = {import_id: import.id}
     if Importo.sidekiq?

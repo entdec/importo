@@ -30,7 +30,7 @@ module Importo
       import.save!
       import.confirm
       import.schedule
-      if Importo.config.batch_adapter.name == "Importo::SidekiqBatchAdapter"
+      if Importo.sidekiq?
         ImportJobCallback.new.on_complete(:success, {import_id: import.id})
       end
       import.reload

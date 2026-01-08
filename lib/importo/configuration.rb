@@ -46,15 +46,13 @@ module Importo
     option :current_import_owner, default: lambda {}
     option :queue_name, default: :import
     # You can either use GoodJob::Batch or Importo::SidekiqBatchAdapter
-    option :batch_adapter, default: lambda {}, proc: true
+    option :batch_adapter_name, default: "Importo::SidekiqBatchAdapter"
 
     option :admin_visible_imports, default: lambda { Importo::Import.where(importo_ownable: Importo.config.current_import_owner) }
     option(:admin_can_destroy,
       default: lambda do |import|
         false
       end)
-
-    option :import_job_base_class, default: "Object"
 
     # Extra links relevant for this import: { link_name: { icon: 'far fa-..', url: '...' } }
     option(:admin_extra_links,
@@ -84,11 +82,20 @@ module Importo
     end
 
     def sidekiq?
-      config.batch_adapter.name == "Importo::SidekiqBatchAdapter"
+      config.batch_adapter_name == "Importo::SidekiqBatchAdapter"
     end
 
     def good_job?
-      config.batch_adapter.name == "GoodJob::Batch"
+      config.batch_adapter_name == "GoodJob::Batch"
+    end
+
+    def import_job_base_class_name
+      if sidekiq?
+        "Object"
+      else
+        require_dependency "importo/application_job"
+        "::Importo::ApplicationJob"
+      end
     end
   end
 end

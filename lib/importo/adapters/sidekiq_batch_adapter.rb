@@ -8,7 +8,6 @@ if !defined?(Sidekiq::Batch)
   end
 end
 
-
 module Importo
   class SidekiqBatchAdapter
     attr_reader :description
@@ -32,13 +31,13 @@ module Importo
     end
 
     def finished?
-      status = Sidekiq::Batch::Status.new( @instance.bid)
+      status = Sidekiq::Batch::Status.new(@instance.bid)
       status.complete?
     end
 
     class << self
-      def import_job_base_class
-        Object
+      def import_job_base_class_name
+        "Object"
       end
 
       def find(id)
@@ -75,7 +74,6 @@ module Importo
 end
 
 require_relative "../../../app/jobs/importo/import_job"
-
 
 Importo::ImportJob.send(:include, Sidekiq::Job)
 Importo::ImportJob.send(:include, Importo::SidekiqBatchAdapter::ImportJobIncludes)

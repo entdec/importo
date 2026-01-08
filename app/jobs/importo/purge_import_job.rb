@@ -1,7 +1,6 @@
 module Importo
-  class PurgeImportJob < ApplicationJob
-    def perform(owner, months,state = nil)
-
+  class PurgeImportJob < ActiveJob::Base
+    def perform(owner, months, state = nil)
       imports = Import.where(importo_ownable: owner, created_at: ..months.months.ago.beginning_of_day)
       imports = imports.where(state: state) if state
 
