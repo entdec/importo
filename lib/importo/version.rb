@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Importo
-  VERSION = "3.0.7"
+  VERSION = "3.0.24"
 end

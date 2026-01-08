@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "importo/test_helpers"
 
 class TranslatedAccountImporter < Importo::BaseImporter
   includes_header true
@@ -51,45 +52,33 @@ end
 module Importo
   class ImportTest < ActiveSupport::TestCase
     include ActiveJob::TestHelper
+    include TestHelpers
+
+    setup do
+      @owner = Account.create!(name: "test")
+      (ActiveJob::Base.descendants << ActiveJob::Base).each do |job_class|
+        job_class.disable_test_adapter
+      end
+    end
 
     test "imports an excel file" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "account")
-      import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]),
-        filename: "simple_sheet.xlsx")
-      assert import.save, import.errors.messages
+      sheet = simple_sheet([%w[id name description], %w[aid atest atest-description]])
+      import = import_sheet("account", sheet, owner: Account.create(name: "test"))
 
-      import.schedule
-      assert_equal "scheduled", import.state
-
-      import.import
-
-      # perform_enqueued_jobs
-      # Sidekiq::Worker.drain_all
-
-      ImportJobCallback.new.on_complete(nil, {import_id: import.id})
       assert_import(import)
     end
 
     test "import strips html tags unless strip_tags is set to false" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "account")
-      import.original.attach(
-        io: simple_sheet([%w[id name description],
-          ["aid", "<strong>a</strong>test",
-            "<strong>atest</strong>-description"]]), filename: "simple_sheet.xlsx"
-      )
-      assert import.save, import.errors.messages
-      import.schedule
-      assert_equal "scheduled", import.state
+      sheet = simple_sheet([%w[id name description],
+        ["aid", "<strong>a</strong>test",
+          "<strong>atest</strong>-description"]])
 
-      import.import
-
+      import = nil
       assert_nothing_raised do
         assert_difference -> { Account.count }, 1 do
-          import.importer.import!
+          import = import_sheet("account", sheet)
         end
       end
-
-      ImportJobCallback.new.on_complete(nil, {import_id: import.id})
 
       account = Account.find_by_name("atest")
       refute_nil account
@@ -98,123 +87,79 @@ module Importo
     end
 
     test "imports an excel file with no headers" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "no_header_account")
-      import.original.attach(io: simple_sheet([%w[aid atest atest-description], %w[bid btest btest-description]]),
-        filename: "simple_sheet.xlsx")
-      assert import.save
-      import.schedule
-      assert_equal "scheduled", import.state
+      sheet = simple_sheet([%w[aid atest atest-description], %w[bid btest btest-description]])
 
-      import.import
-
+      import = nil
       assert_nothing_raised do
         assert_difference -> { Account.count }, 2 do
-          import.importer.import!
+          import = import_sheet("no_header_account", sheet)
         end
       end
 
-      ImportJobCallback.new.on_complete(nil, {import_id: import.id})
       assert_equal "completed", import.reload.state, import.results
     end
 
     test "finds the correct header row when it is the first row" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "account")
-      import.original.attach(io: simple_sheet([%w[id name description], %w[aid atest atest-description]]),
-        filename: "simple_sheet.xlsx")
-      assert import.save, import.errors.messages
+      sheet = simple_sheet([%w[id name description], %w[aid atest atest-description]])
+      import = import_sheet("account", sheet)
+
       importer = import.importer
       assert_equal 1, importer.send(:header_row)
     end
 
     test "finds the correct header row when there are random rows in front" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "account")
-      import.original.attach(
-        io: simple_sheet([%w[], %w[a b c], %w[id name description],
-          %w[aid atest atest-description]]), filename: "simple_sheet.xlsx"
-      )
-      assert import.save, import.errors.messages
-      importer = import.importer
-      assert_equal 3, importer.send(:header_row)
+      sheet = simple_sheet([%w[], %w[a b c], %w[id name description],
+        %w[aid atest atest-description]])
+      import = import_sheet("account", sheet)
+
+      assert_equal 3, import.importer.send(:header_row)
     end
 
     test "finds the correct translated header row with default language (en)" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "translated_account")
-      import.original.attach(
-        io: simple_sheet([%w[], %w[a b c], ["Record ID", "Name", "Description"],
-          %w[aid atest atest-description]]), filename: "simple_sheet.xlsx"
-      )
-      assert import.save, import.errors.messages
-      importer = import.importer
-      assert_equal 3, importer.send(:header_row)
+      sheet = simple_sheet([%w[], %w[a b c], ["Record ID", "Name", "Description"],
+        %w[aid atest atest-description]])
+      import = import_sheet("translated_account", sheet)
+
+      assert_equal 3, import.importer.send(:header_row)
     end
 
     test "finds the correct translated header row with nl language" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "translated_account", locale: "nl")
-      import.original.attach(
-        io: simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Omschrijving"],
-          %w[aid atest atest-description]]), filename: "simple_sheet.xlsx"
-      )
-      assert import.save, import.errors.messages
-      importer = import.importer
-      assert_equal 3, importer.send(:header_row)
+      sheet = simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Omschrijving"],
+        %w[aid atest atest-description]])
+
+      import = import_sheet("translated_account", sheet)
+      assert_equal 3, import.importer.send(:header_row)
     end
 
     test "finds the correct translated header row with nl language while default locale is active (en)" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "translated_account")
-      import.original.attach(
-        io: simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Omschrijving"],
-          %w[aid atest atest-description]]), filename: "simple_sheet.xlsx"
-      )
-      assert import.save, import.errors.messages
-      importer = import.importer
-      assert_equal 3, importer.send(:header_row)
+      sheet = simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Omschrijving"],
+        %w[aid atest atest-description]])
+      import = import_sheet("translated_account", sheet)
+
+      assert_equal 3, import.importer.send(:header_row)
     end
 
     test "imports an excel file with the headers in nl while the current locale is nl" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "translated_account", locale: "nl")
-      import.original.attach(
-        io: simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Omschrijving"],
-          %w[aid atest atest-description]]), filename: "simple_sheet.xlsx"
-      )
-      assert import.save, import.errors.messages
-      import.schedule
-      assert_equal "scheduled", import.state
+      sheet = simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Omschrijving"],
+        %w[aid atest atest-description]])
+      import = import_sheet("translated_account", sheet, owner: Account.create(name: "test"))
 
-      import.import
-
-      ImportJobCallback.new.on_complete(nil, {import_id: import.id})
       assert_import(import)
     end
 
     test "imports an excel file with the headers in nl while the current locale is en" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "translated_account")
-      import.original.attach(
-        io: simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Omschrijving"],
-          %w[aid atest atest-description]]), filename: "simple_sheet.xlsx"
-      )
-      assert import.save, import.errors.messages
-      import.schedule
-      assert_equal "scheduled", import.state
+      sheet = simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Omschrijving"],
+        %w[aid atest atest-description]])
+      import = import_sheet("translated_account", sheet, owner: Account.create(name: "test"))
 
-      import.import
-
-      ImportJobCallback.new.on_complete(nil, {import_id: import.id})
       assert_import(import)
     end
 
     test "imports an excel file with the headers in en and nl while the current locale is en" do
-      import = Import.new(importo_ownable: Account.create(name: "test"), kind: "translated_account")
-      import.original.attach(
-        io: simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Description"],
-          %w[aid atest atest-description]]), filename: "simple_sheet.xlsx"
-      )
-      assert import.save, import.errors.messages
-      import.schedule
-      assert_equal "scheduled", import.state
+      sheet = simple_sheet([%w[], %w[a b c], ["Record ID", "Naam", "Description"],
+        %w[aid atest atest-description]])
+      import = import_sheet("translated_account", sheet, owner: Account.create(name: "test"))
 
-      import.import
-
-      ImportJobCallback.new.on_complete(nil, {import_id: import.id})
       assert_import(import)
     end
 
@@ -223,7 +168,7 @@ module Importo
     def assert_import(import)
       assert_nothing_raised do
         assert_difference -> { Account.count }, 1 do
-          import.importer.import!
+          import.importer.import!(checked_columns: import.checked_columns)
         end
       end
 

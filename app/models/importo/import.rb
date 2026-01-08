@@ -3,7 +3,7 @@
 module Importo
   class Import < Importo::ApplicationRecord
     # include ActiveStorage::Downloading
-
+    attr_accessor :checked_columns
     belongs_to :importo_ownable, polymorphic: true
 
     has_many :message_instances, as: :messagable
@@ -13,14 +13,11 @@ module Importo
     validates :original, presence: true
     validate :content_validator
 
-    begin
-      has_one_attached :original
-      has_one_attached :result
-    rescue NoMethodError
-      # Weird loading sequence error, is fixed by the lib/importo/helpers
-    end
+    has_one_attached :original
+    has_one_attached :result
 
-    state_machine :state, initial: :new do
+    state_machine :state, initial: :concept do
+      state :confirmed
       state :importing
       state :scheduled
       state :completed
@@ -35,11 +32,15 @@ module Importo
       after_transition any => :reverting, :do => :schedule_revert
 
       event :schedule do
-        transition new: :scheduled
+        transition confirmed: :scheduled
+      end
+
+      event :confirm do
+        transition concept: :confirmed
       end
 
       event :import do
-        transition new: :importing
+        transition confirmed: :importing
         transition scheduled: :importing
         transition failed: :importing
       end
@@ -76,6 +77,7 @@ module Importo
             invalid_headers: importer.invalid_header_names.join(", ")))
       end
     rescue => e
+      Rails.logger.info "Importo failed excpetion: #{e.message} backtrace #{e.backtrace.join(";")}"
       errors.add(:original, I18n.t("importo.errors.parse_error", error: e.message))
     end
 
@@ -110,11 +112,11 @@ module Importo
     private
 
     def schedule_import
-      ImportService.perform_later(import: self)
+      ImportService.perform_later(import: self, checked_columns: checked_columns)
     end
 
     def schedule_revert
-      RevertService.perform_later(import: self)
+      ImportRevertJob.perform_in(5.seconds, id)
     end
   end
 end

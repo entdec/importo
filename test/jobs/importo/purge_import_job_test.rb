@@ -13,6 +13,8 @@ end
 
 module Importo
   class PurgeImportJobTest < ActiveSupport::TestCase
+    include Importo::TestHelpers
+
     test "does not purge importo import less than 3 month ago" do
       account = Account.create(name: "test")
       import = Import.new(importo_ownable: account, kind: "account", created_at: 1.month.ago)

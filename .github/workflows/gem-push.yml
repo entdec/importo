@@ -1,0 +1,11 @@
+name: Rubygem Push
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  build:
+    uses: entdec/_workflows/.github/workflows/gem-push.yml@main
+    with:
+      public: true
+    secrets: inherit

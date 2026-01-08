@@ -1,12 +1,20 @@
 module Importo
-  class ImportJobCallback
+  class ImportJobCallback < ActiveJob::Base
+    include Sidekiq::Batch::Callback if Importo.sidekiq?
     include Rails.application.routes.url_helpers
 
-    def on_complete(_status, options)
-      options = options.deep_stringify_keys
-      import = Import.find(options["import_id"])
+    # This is for good_job
+    def perform(batch, context)
+      import = Import.find(batch.properties[:import_id])
+      complete_import(import)
+    end
+
+    def complete_import(import)
       if import.present?
-        import.result.attach(io: import.importer.results_file, filename: import.importer.file_name("results"),
+        results_file = import.importer.results_file
+        results_file = results_file.is_a?(StringIO) ? results_file : File.open(results_file)
+
+        import.result.attach(io: results_file, filename: import.importer.file_name("results"),
           content_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
         ActiveRecord::Base.uncached do
@@ -22,8 +30,12 @@ module Importo
       end
     end
 
-    def on_success(status, options)
-      on_complete(status, options)
+    # This is for sidekiq
+    def on_complete(status, options)
+      options = options.deep_stringify_keys
+      import = Import.find(options["import_id"])
+      complete_import(import)
     end
+
   end
 end

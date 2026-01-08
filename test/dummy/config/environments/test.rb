@@ -27,6 +27,8 @@ Rails.application.configure do
   # Raise exceptions instead of rendering exception templates.
   config.action_dispatch.show_exceptions = false
 
+  config.active_job.queue_adapter = :good_job
+
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
   config.action_mailer.perform_caching = false
@@ -42,5 +44,4 @@ Rails.application.configure do
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
   config.active_storage.service = :local
-  config.active_record.legacy_connection_handling = false
 end

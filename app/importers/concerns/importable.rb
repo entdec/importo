@@ -88,7 +88,7 @@ module Importable
   end
 
   #
-  # Callbakcs
+  # Callbacks
   #
   def before_build(_record, _row)
   end
@@ -123,26 +123,35 @@ module Importable
   #
   # Does the actual import
   #
-  def import!
-    raise ArgumentError, "Invalid data structure" unless structure_valid?
+  def import!(checked_columns)
+    raise ArgumentError, 'Invalid data structure' unless structure_valid?
 
-    batch = Sidekiq::Batch.new
+    batch = Importo.config.batch_adapter.new
     batch.description = "#{import.original.filename} - #{import.kind}"
-    batch.on(:success, Importo::ImportJobCallback, import_id: import.id)
+    batch.properties = {import_id: import.id}
+    if Importo.sidekiq?
+      batch.on_success("Importo::ImportJobCallback")
+    else
+      batch.on_success = "Importo::ImportJobCallback"
+    end
 
-    batch.jobs do
+    batch.add do
       column_with_delay = columns.select { |k, v| v.delay.present? }
-      loop_data_rows do |attributes, index|
+      loop_data_rows(checked_columns) do |attributes, index|
         if column_with_delay.present?
-          delay = column_with_delay.map do |k, v|
+          delay = column_with_delay.filter_map do |k, v|
             next unless attributes[k].present?
             v.delay.call(attributes[k])
-          end.compact
+          end
         end
-        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).perform_async(JSON.dump(attributes), index, import.id) if delay.present?
-        Importo::ImportJob.perform_async(JSON.dump(attributes), index, import.id) unless delay.present?
+
+        method = Importo.sidekiq? ? "perform_async" : "perform_later"
+        Importo::ImportJob.set(wait_until: (delay.max * index).seconds.from_now).send(method, JSON.dump(attributes), index, import.id) if delay.present?
+        Importo::ImportJob.send(method, JSON.dump(attributes), index, import.id) unless delay.present?
       end
     end
+
+    batch.enqueue if defined?(GoodJob::Batch) && Importo.good_job?
 
     true
   rescue => e
@@ -161,7 +170,7 @@ module Importable
     run_callbacks :row_import do
       record = nil
 
-      ActiveRecord::Base.transaction(isolation: :read_committed) do
+      ActiveRecord::Base.transaction do
         register_result(index, hash: row_hash, state: :processing)
 
         before_build(record, attributes)
