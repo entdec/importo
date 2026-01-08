@@ -21,7 +21,7 @@ module Importable
     columns.each do |k, col|
       next if col.proc.blank? || row[k].nil?
 
-      attr = col.options[:attribute]
+      col.options[:attribute]
 
       row[k] = import.column_overrides[col.attribute] if import.column_overrides[col.attribute]
 
