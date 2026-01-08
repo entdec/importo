@@ -36,6 +36,5 @@ module Importo
       import = Import.find(options["import_id"])
       complete_import(import)
     end
-
   end
 end

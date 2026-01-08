@@ -46,7 +46,7 @@ module Importo
     option :current_import_owner, default: lambda {}
     option :queue_name, default: :import
     # You can either use GoodJob::Batch or Importo::SidekiqBatchAdapter
-    option :batch_adapter, default: lambda { GoodJob::Batch }, proc: true
+    option :batch_adapter, default: lambda {}, proc: true
 
     option :admin_visible_imports, default: lambda { Importo::Import.where(importo_ownable: Importo.config.current_import_owner) }
     option(:admin_can_destroy,

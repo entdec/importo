@@ -32,9 +32,9 @@ module Importo
       import.schedule
       ImportService.perform(import: import)
       if Importo.config.batch_adapter.name == "Importo::SidekiqBatchAdapter"
-        ImportJobCallback.new.on_success(:success, {import_id: import.id})
+        ImportJobCallback.new.on_complete(:success, {import_id: import.id})
       end
-      import
+      import.reload
     end
   end
 end

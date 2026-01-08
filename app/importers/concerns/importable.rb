@@ -124,7 +124,7 @@ module Importable
   # Does the actual import
   #
   def import!(checked_columns)
-    raise ArgumentError, 'Invalid data structure' unless structure_valid?
+    raise ArgumentError, "Invalid data structure" unless structure_valid?
 
     batch = Importo.config.batch_adapter.new
     batch.description = "#{import.original.filename} - #{import.kind}"
@@ -151,7 +151,7 @@ module Importable
       end
     end
 
-    batch.enqueue if defined?(GoodJob::Batch) && Importo.good_job?
+    batch.enqueue if Importo.good_job?
 
     true
   rescue => e
