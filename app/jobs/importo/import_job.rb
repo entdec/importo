@@ -16,13 +16,13 @@ module Importo
       # - Sidekiq calls on_complete callback when all jobs ran at least once.
       # - GoodJob calls on_complete callback when all jobs are done (including retries).
       # i.e. this logic is only needed for sidekiq
-      return unless Importo.sidekiq?
+      # return unless Importo.sidekiq?
 
-      batch = Importo::SidekiqBatchAdapter.find(bid)
+      # batch = Importo::SidekiqBatchAdapter.find(bid)
 
-      if !import.completed? && import.can_complete? && batch.finished?
-        ImportJobCallback.perform_now(batch, import.id)
-      end
+      # if !import.completed? && import.can_complete? && batch.finished?
+      #   ImportJobCallback.perform_now(batch, import.id)
+      # end
     end
   end
 end
