@@ -12,20 +12,17 @@ module Importo
       import = Import.find(import_id)
       import.importer.process_data_row(attributes, index, last_attempt: last_attempt)
 
-      # This should not be needed:
-      # https://github.com/sidekiq/sidekiq/wiki/Batches#callbacks
-      #
       # Between sidekiq and good job, there's a big difference:
       # - Sidekiq calls on_complete callback when all jobs ran at least once.
       # - GoodJob calls on_complete callback when all jobs are done (including retries).
       # i.e. this logic is only needed for sidekiq
-      # return unless Importo.sidekiq?
+      return unless Importo.sidekiq?
 
-      # batch = Importo::SidekiqBatchAdapter.find(bid)
+      batch = Importo::SidekiqBatchAdapter.find(bid)
 
-      # if !import.completed? && import.can_complete? && batch.finished?
-      #   ImportJobCallback.perform_now(batch, import.id)
-      # end
+      if !import.completed? && import.can_complete? && batch.finished?
+        ImportJobCallback.perform_now(batch, import.id)
+      end
     end
   end
 end
