@@ -86,15 +86,11 @@ module Importo
     end
 
     def sample
-      import = Import.new(kind: params[:kind], locale: I18n.locale)
-      send_data import.importer.sample_file.read,
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filename: import.importer.file_name("sample")
+      create_export(:sample)
     end
 
     def export
-      import = Import.new(kind: params[:kind], locale: I18n.locale)
-      send_data import.importer.export_file.read,
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filename: import.importer.file_name("export")
+      create_export(:export)
     end
 
     def index
@@ -102,6 +98,15 @@ module Importo
     end
 
     private
+
+    def create_export(kind)
+      import = Import.new(kind: params[:kind], locale: I18n.locale,
+        importo_ownable: Importo.config.current_import_owner.call)
+      import.save!(validate: false)
+      import.start_export!
+      ExportJob.perform_later(import.id, kind)
+      redirect_to action: :index
+    end
 
     def import_params
       params.require(:import).permit(:original, :kind, :column_overrides,

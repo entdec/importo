@@ -44,7 +44,7 @@ if defined? Mensa
     private
 
     def scope
-      @scope = Importo.config.admin_visible_imports.call
+      @scope = Importo.config.admin_visible_imports.call.where.not(state: %w[exporting exported])
       @scope = @scope.joins("LEFT JOIN users on importo_imports.importo_ownable_type = 'User' and importo_imports.importo_ownable_id = users.id ")
     end
 

@@ -10,7 +10,7 @@ module Importo
     has_many :results, class_name: "Importo::Result", dependent: :delete_all
 
     validates :kind, presence: true
-    validates :original, presence: true
+    validates :original, presence: true, unless: :export_state?
     validate :content_validator
 
     has_one_attached :original
@@ -23,6 +23,8 @@ module Importo
       state :completed
       state :failed
       state :reverted
+      state :exporting
+      state :exported
 
       after_transition any => any do |imprt, transition|
         imprt.importer.state_changed(imprt, transition)
@@ -53,6 +55,14 @@ module Importo
         transition any => :failed
       end
 
+      event :start_export do
+        transition concept: :exporting
+      end
+
+      event :complete_export do
+        transition exporting: :exported
+      end
+
       event :revert do
         transition completed: :reverting
       end
@@ -71,6 +81,8 @@ module Importo
     end
 
     def content_validator
+      return if export_state?
+
       unless importer.structure_valid?
         errors.add(:original,
           I18n.t("importo.errors.structure_invalid",
@@ -107,6 +119,10 @@ module Importo
 
     def no_processing?
       results.where("details @> ?", '{"state":"processing"}').none?
+    end
+
+    def export_state?
+      %w[exporting exported failed].include?(state) && original.blank?
     end
 
     private

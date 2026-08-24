@@ -30,7 +30,7 @@ if defined? ActionTable
     private
 
     def scope
-      @scope = Importo.config.admin_visible_imports.call
+      @scope = Importo.config.admin_visible_imports.call.where.not(state: %w[exporting exported])
       @scope
     end
   end
