@@ -87,12 +87,12 @@ module Importo
 
     def sample
       create_export(:sample)
-      redirect_back
+      redirect_back(fallback_location: importo.new_import_path(params[:kind]))
     end
 
     def export
       create_export(:export)
-      redirect_back
+      redirect_back(fallback_location: importo.new_import_path(params[:kind]))
     end
 
     def index
@@ -106,7 +106,6 @@ module Importo
         importo_ownable: Importo.config.current_import_owner.call)
       import.save!(validate: false)
       ExportJob.perform_later(import.id, kind)
-      redirect_to action: :index
     end
 
     def import_params
