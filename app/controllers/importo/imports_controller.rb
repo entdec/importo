@@ -87,12 +87,12 @@ module Importo
 
     def sample
       create_export(:sample)
-      redirect :back
+      redirect_back
     end
 
     def export
       create_export(:export)
-      redirect :back
+      redirect_back
     end
 
     def index
