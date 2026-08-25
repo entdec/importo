@@ -87,10 +87,12 @@ module Importo
 
     def sample
       create_export(:sample)
+      redirect :back
     end
 
     def export
       create_export(:export)
+      redirect :back
     end
 
     def index
@@ -103,7 +105,6 @@ module Importo
       import = Import.new(kind: params[:kind], locale: I18n.locale,
         importo_ownable: Importo.config.current_import_owner.call)
       import.save!(validate: false)
-      import.start_export!
       ExportJob.perform_later(import.id, kind)
       redirect_to action: :index
     end
