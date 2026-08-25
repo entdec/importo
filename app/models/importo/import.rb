@@ -25,10 +25,9 @@ module Importo
       state :reverted
       state :exporting
       state :exported
+      state :reverting
 
-      after_transition any => any do |imprt, transition|
-        imprt.importer.state_changed(imprt, transition)
-      end
+      around_transition :run_transition_callbacks
 
       after_transition any => :scheduled, :do => :schedule_import
       after_transition any => :reverting, :do => :schedule_revert
@@ -123,6 +122,12 @@ module Importo
 
     def export_state?
       %w[exporting exported failed].include?(state) && original.blank?
+    end
+
+    def run_transition_callbacks(transition)
+      importer.run_callbacks(transition.to_name) do
+        yield
+      end
     end
 
     private
