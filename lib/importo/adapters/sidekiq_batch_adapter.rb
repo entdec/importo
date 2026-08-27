@@ -21,7 +21,12 @@ module Importo
     end
 
     def on_success(job)
+      # Register for both events: :complete can fire prematurely while rows are
+      # still awaiting a Sidekiq retry, :success only fires once every row has
+      # truly succeeded. ImportJobCallback itself guards against finalizing
+      # before every row has actually finished processing.
       @instance.on(:complete, job.constantize, properties)
+      @instance.on(:success, job.constantize, properties)
     end
 
     def add
